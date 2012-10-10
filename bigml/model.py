@@ -65,6 +65,7 @@ OPERATOR = {
     "<=": operator.le,
     "=": operator.eq,
     "!=": operator.ne,
+    "/=": operator.ne,
     ">=": operator.ge,
     ">": operator.gt
 }
@@ -75,6 +76,7 @@ PYTHON_OPERATOR = {
     "<=": "<=",
     "=": "==",
     "!=": "!=",
+    "/=": "!=",
     ">=": ">=",
     ">": ">"
 }
@@ -610,8 +612,8 @@ class Model(object):
                     prediction in groups[group]['total'][0]]
             data_per_group = groups[group]['total'][1] * 1.0 / tree.count
             pred_per_group = groups[group]['total'][2] * 1.0 / tree.count
-            out.write("\n\n%s : (data %.2f%% / prediction %.2f%%) %s\n" %
-                      (Unicode(group),
+            out.write("\n\n%s: (data %.2f%% / prediction %.2f%%) %s\n" %
+                      (unicode(group),
                        round(data_per_group, 4) * 100,
                        round(pred_per_group, 4) * 100,
                        " and ".join(path)))
