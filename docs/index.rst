@@ -911,7 +911,7 @@ predicates must be true.
 Samples
 -------
 
-To provide quick access to your row data you can create a ``sample``. Samples
+To provide quick access to your raw data you can create a ``sample``. Samples
 are in-memory objects that can be queried for subsets of data by limiting
 their size, the fields or the rows returned. The structure of a sample would
 be::
