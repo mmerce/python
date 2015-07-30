@@ -660,6 +660,9 @@ score. Thus, the structure of an anomaly detector is similar to:
 
 .. code-block:: python
 
+    >>> anomaly = api.create_anomaly(´dataset/540dfa9d9841fa5c88000765')
+    >>> api.ok(anomaly)
+    >>> api.pprint(anomaly['object'])
     {   'category': 0,
         'code': 200,
         'columns': 14,
@@ -1441,6 +1444,8 @@ You can query the status of any resource with the ``status`` method:
     api.status(batch_anomaly_score)
     api.status(project)
     api.status(sample)
+    api.status(correlation)
+    api.status(test)
 
 Before invoking the creation of a new resource, the library checks that
 the status of the resource that is passed as a parameter is
@@ -1995,6 +2000,9 @@ You can list resources with the appropriate api method:
     api.list_anomalies()
     api.list_anomaly_scores()
     api.list_batch_anomaly_scores()
+    api.list_samples()
+    api.list_correlations()
+    api.list_tests()
 
 you will receive a dictionary with the following keys:
 
@@ -2123,6 +2131,9 @@ problems or one of the HTTP standard error codes otherwise.
     api.update_anomaly(anomaly, {"name": "new name"})
     api.update_anomaly_score(anomaly_score, {"name": "new name"})
     api.update_batch_anomaly_score(batch_anomaly_score, {"name": "new name"})
+    api.update_sample(sample, {"name": "new name"})
+    api.update_correlation(correlation, {"name": "new name"})
+    api.update_test(test, {"name": "new name"})
 
 Updates can change resource general properties, such as the ``name`` or
 ``description`` attributes of a dataset, or specific properties. As an example,
@@ -2161,6 +2172,9 @@ each type of resource.
     api.delete_anomaly(anomaly)
     api.delete_anomaly_score(anomaly_score)
     api.delete_batch_anomaly_score(batch_anomaly_score)
+    api.delete_sample(sample)
+    api.delete_correlation(correlation)
+    api.delete_test(test)
 
 Each of the calls above will return a dictionary with the following
 keys:
