@@ -835,7 +835,7 @@ class TestComparePrediction(object):
             ['data/iris.csv', '10', '10', '20', '{"petal width": 0.5}', '000004', 'Iris-versicolor', '{"number_of_models": 5}'],
             ['data/iris.csv', '10', '10', '20', '{"petal length": 6, "petal width": 2}', '000004', 'Iris-virginica', '{"number_of_models": 5}'],
             ['data/iris.csv', '10', '10', '20', '{"petal length": 4, "petal width": 1.5}', '000004', 'Iris-versicolor', '{"number_of_models": 5}'],
-            ['data/grades.csv', '10', '10', '20', '{"Midterm": 20}', '000005', 49.393906, '{"number_of_models": 5}'],
+            ['data/grades.csv', '10', '10', '20', '{"Midterm": 20}', '000005', 46.261364, '{"number_of_models": 5}'],
             ['data/iris.csv', '10', '10', '20', '{"petal width": 0.5}', '000004', 'Iris-setosa', '{"boosting": {"iterations": 5}, "number_of_models": 5}'],
             ['data/iris.csv', '10', '10', '20', '{"petal length": 6, "petal width": 2}', '000004', 'Iris-virginica', '{"boosting": {"iterations": 5}, "number_of_models": 5}'],
             ['data/iris.csv', '10', '10', '20', '{"petal length": 4, "petal width": 1.5}', '000004', 'Iris-versicolor', '{"boosting": {"iterations": 5}, "number_of_models": 5}'],

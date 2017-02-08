@@ -187,7 +187,6 @@ def the_batch_mm_predictions_are(step, predictions):
             eq_(prediction['prediction'], predictions[i])
     eq_(i, len(predictions))
 
-
 #@step(r'the multiple local prediction is "(.*)"')
 def the_multiple_local_prediction_is(step, prediction):
     local_prediction = world.local_prediction
