@@ -50,6 +50,7 @@ RESOURCE_TYPES = [
     'logisticregression',
     'association',
     'associationset',
+    'configuration',
     'topicmodel',
     'topicdistribution',
     'script',
