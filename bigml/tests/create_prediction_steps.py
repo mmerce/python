@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2015-2016 BigML
+# Copyright 2015-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,7 +17,7 @@
 
 import json
 import time
-import nose.tools
+from nose.tools import assert_almost_equals, eq_
 from datetime import datetime, timedelta
 from world import world
 from bigml.api import HTTP_CREATED
@@ -33,7 +33,7 @@ def i_create_a_prediction(step, data=None):
     data = json.loads(data)
     resource = world.api.create_prediction(model, data)
     world.status = resource['code']
-    assert world.status == HTTP_CREATED, "Wrong status: %s" % world.status
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.prediction = resource['object']
     world.predictions.append(resource['resource'])
@@ -46,7 +46,7 @@ def i_create_a_centroid(step, data=None):
     data = json.loads(data)
     resource = world.api.create_centroid(cluster, data)
     world.status = resource['code']
-    assert world.status == HTTP_CREATED
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.centroid = resource['object']
     world.centroids.append(resource['resource'])
@@ -60,7 +60,7 @@ def i_create_a_proportional_prediction(step, data=None):
     resource = world.api.create_prediction(model, data,
                                            args={'missing_strategy': 1})
     world.status = resource['code']
-    assert world.status == HTTP_CREATED
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.prediction = resource['object']
     world.predictions.append(resource['resource'])
@@ -68,9 +68,9 @@ def i_create_a_proportional_prediction(step, data=None):
 
 def check_prediction(got, expected):
     if not isinstance(got, basestring):
-        nose.tools.assert_almost_equals(got, float(expected), 5)
+        assert_almost_equals(got, float(expected), 5)
     else:
-        nose.tools.assert_equals(got, expected)
+        eq_(got, expected)
 
 def the_prediction_is(step, objective, prediction):
     check_prediction(world.prediction['prediction'][objective], prediction)
@@ -91,9 +91,10 @@ def the_centroid_is_ok(step):
 
 
 def the_confidence_is(step, confidence):
-    local_confidence = world.prediction['confidence']
-    nose.tools.assert_almost_equals(float(local_confidence),
-                                    float(confidence), 4)
+    local_confidence = world.prediction.get('confidence', \
+        world.prediction.get('probability'))
+    assert_almost_equals(float(local_confidence),
+                         float(confidence), 4)
 
 def i_create_an_ensemble_prediction(step, data=None):
     if data is None:
@@ -102,7 +103,21 @@ def i_create_an_ensemble_prediction(step, data=None):
     data = json.loads(data)
     resource = world.api.create_prediction(ensemble, data)
     world.status = resource['code']
-    assert world.status == HTTP_CREATED
+    eq_(world.status, HTTP_CREATED)
+    world.location = resource['location']
+    world.prediction = resource['object']
+    world.predictions.append(resource['resource'])
+
+def i_create_an_ensemble_proportional_prediction(step, data=None):
+    if data is None:
+        data = "{}"
+    ensemble = world.ensemble['resource']
+    data = json.loads(data)
+    resource = world.api.create_prediction(ensemble,
+                                           data,
+                                           {"missing_strategy": 1})
+    world.status = resource['code']
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.prediction = resource['object']
     world.predictions.append(resource['resource'])
@@ -118,7 +133,7 @@ def wait_until_prediction_status_code_is(step, code1, code2, secs):
         assert datetime.utcnow() - start < timedelta(seconds=int(secs))
         i_get_the_prediction(step, world.prediction['resource'])
         status = get_status(world.prediction)
-    assert status['code'] == int(code1)
+    eq_(status['code'], int(code1))
 
 
 def the_prediction_is_finished_in_less_than(step, secs):
@@ -138,9 +153,14 @@ def create_local_ensemble_prediction_with_confidence(step, input_data):
     world.local_prediction = world.local_ensemble.predict(
         json.loads(input_data), with_confidence=True)
 
+def create_local_ensemble_proportional_prediction_with_confidence( \
+    step, input_data):
+    world.local_prediction = world.local_ensemble.predict( \
+        json.loads(input_data), with_confidence=True, missing_strategy=1)
 
-def create_local_ensemble_prediction_using_median_with_confidence(step, input_data):
-    world.local_prediction = world.local_ensemble.predict(
+def create_local_ensemble_prediction_using_median_with_confidence( \
+    step, input_data):
+    world.local_prediction = world.local_ensemble.predict( \
         json.loads(input_data), with_confidence=True, median=True)
 
 
@@ -151,7 +171,7 @@ def i_create_an_anomaly_score(step, data=None):
     data = json.loads(data)
     resource = world.api.create_anomaly_score(anomaly, data)
     world.status = resource['code']
-    assert world.status == HTTP_CREATED
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.anomaly_score = resource['object']
     world.anomaly_scores.append(resource['resource'])
@@ -164,7 +184,7 @@ def i_create_an_association_set(step, data=None):
     data = json.loads(data)
     resource = world.api.create_association_set(association, data)
     world.status = resource['code']
-    assert world.status == HTTP_CREATED
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.association_set = resource['object']
     world.association_sets.append(resource['resource'])
@@ -184,7 +204,7 @@ def i_create_a_logistic_prediction(step, data=None):
     data = json.loads(data)
     resource = world.api.create_prediction(model, data)
     world.status = resource['code']
-    assert world.status == HTTP_CREATED, "Wrong status: %s" % world.status
+    eq_(world.status, HTTP_CREATED)
     world.location = resource['location']
     world.prediction = resource['object']
     world.predictions.append(resource['resource'])
@@ -193,5 +213,5 @@ def the_logistic_probability_is(step, probability):
     for [prediction, remote_probability] in world.prediction['probabilities']:
         if prediction == world.prediction['output']:
             break
-    nose.tools.assert_almost_equals(round(float(remote_probability), 4),
-                                    round(float(probability), 4))
+    assert_almost_equals(round(float(remote_probability), 4),
+                         round(float(probability), 4))

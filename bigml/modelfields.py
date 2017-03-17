@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2013-2016 BigML
+# Copyright 2013-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,10 +15,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A BasicModel resource.
+"""A ModelFields resource.
 
-This module defines a BasicModel to hold the main information of the model
-resource in BigML. It becomes the starting point for the Model class, that
+This module defines a ModelFields class to hold the information associated
+to the fields of the model resource in BigML.
+It becomes the starting point for the Model class, that
 is used for local predictions.
 
 """
@@ -70,6 +71,8 @@ def check_model_fields(model):
                 # we return True to avoid failing in this case
                 return True
         else:
+            if fields is None:
+                return False
             return all([field_id in fields.keys() \
                 for field_id in model_fields])
     return False

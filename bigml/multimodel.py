@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2012-2016 BigML
+# Copyright 2012-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -101,16 +101,16 @@ class MultiModel(object):
 
     """
 
-    def __init__(self, models, api=None):
+    def __init__(self, models, api=None, fields=None):
         self.models = []
         if isinstance(models, list):
             if all([isinstance(model, Model) for model in models]):
                 self.models = models
             else:
                 for model in models:
-                    self.models.append(Model(model, api=api))
+                    self.models.append(Model(model, api=api, fields=fields))
         else:
-            self.models.append(Model(models, api=api))
+            self.models.append(Model(models, api=api, fields=fields))
 
     def list_models(self):
         """Lists all the model/ids that compound the multi model.
@@ -185,6 +185,13 @@ class MultiModel(object):
                 add_max=add_max,
                 add_unused_fields=add_unused_fields,
                 missing_strategy=missing_strategy)
+            if model.boosting is not None:
+                votes.boosting = True
+                prediction_info.update( \
+                    {"weight": model.boosting.get("weight")})
+                if model.boosting.get("objective_class") is not None:
+                    prediction_info.update( \
+                        {"class": model.boosting.get("objective_class")})
             votes.append(prediction_info)
         return votes
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2012-2016 BigML
+# Copyright 2012-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -45,13 +45,13 @@ import json
 
 from bigml.api import BigML, get_ensemble_id, get_model_id
 from bigml.model import Model, retrieve_resource, print_distribution
-from bigml.model import STORAGE, ONLY_MODEL, LAST_PREDICTION
+from bigml.model import STORAGE, ONLY_MODEL, LAST_PREDICTION, EXCLUDE_FIELDS
 from bigml.multivote import MultiVote
 from bigml.multivote import PLURALITY_CODE
 from bigml.multimodel import MultiModel
 from bigml.basemodel import BaseModel, print_importance
 
-
+BOOSTING = 1
 LOGGER = logging.getLogger('BigML')
 
 
@@ -93,7 +93,13 @@ class Ensemble(object):
         self.distributions = None
         self.models_splits = []
         self.multi_model = None
+        self.boosting = None
         self.cache_get = None
+        self.regression = False
+        self.fields = None
+        self.importance = []
+        query_string = ONLY_MODEL
+        no_check_fields = False
         if isinstance(ensemble, list):
             if all([isinstance(model, Model) for model in ensemble]):
                 models = ensemble
@@ -107,15 +113,24 @@ class Ensemble(object):
                     raise ValueError('Failed to verify the list of models.'
                                      ' Check your model id values: %s' %
                                      str(exc))
-            self.distributions = None
         else:
             ensemble = self.get_ensemble_resource(ensemble)
             self.resource_id = get_ensemble_id(ensemble)
             self.ensemble_id = self.resource_id
             ensemble = retrieve_resource(self.api, self.resource_id)
+            if ensemble['object'].get('type') == BOOSTING:
+                self.boosting = ensemble['object'].get('boosting')
             models = ensemble['object']['models']
-            self.distributions = ensemble['object'].get('distributions', None)
+            self.distributions = ensemble['object'].get('distributions', [])
+            self.importance = ensemble['object'].get('importance', [])
             self.model_ids = models
+            # new ensembles have the fields structure
+            if ensemble['object'].get('ensemble'):
+                self.fields = ensemble['object'].get( \
+                    'ensemble', {}).get("fields")
+                self.objective_id = ensemble['object'].get("objective_field")
+                query_string = EXCLUDE_FIELDS
+                no_check_fields = True
 
         number_of_models = len(models)
         if max_models is None:
@@ -136,14 +151,69 @@ class Ensemble(object):
                                         ' function %s: %s' %
                                         (cache_get.__name__, str(exc)))
                 else:
-                    models = [retrieve_resource(self.api, model_id,
-                                                query_string=ONLY_MODEL)
+                    models = [retrieve_resource( \
+                        self.api,
+                        model_id,
+                        query_string=query_string,
+                        no_check_fields=no_check_fields)
                               for model_id in self.models_splits[0]]
-            self.multi_model = MultiModel(models, self.api)
+            model = models[0]
         else:
+            # only retrieving first model
             self.cache_get = cache_get
-        self.fields, self.objective_id = self.all_model_fields(
-            max_models=max_models)
+            if not isinstance(models[0], Model):
+                if use_cache(cache_get):
+                    # retrieve the models from a cache get function
+                    try:
+                        model = cache_get(self.models_splits[0][0])
+                        self.cache_get = cache_get
+                    except Exception, exc:
+                        raise Exception('Error while calling the user-given'
+                                        ' function %s: %s' %
+                                        (cache_get.__name__, str(exc)))
+                else:
+                    model = retrieve_resource( \
+                        self.api,
+                        self.models_splits[0][0],
+                        query_string=query_string,
+                        no_check_fields=no_check_fields)
+
+        if self.boosting is None:
+            self._add_models_attrs(model, max_models)
+        if self.fields is None:
+            self.fields, self.objective_id = self.all_model_fields(
+                max_models=max_models)
+        if len(self.models_splits) == 1:
+            self.multi_model = MultiModel(models, self.api, fields=self.fields)
+
+        self.regression = \
+            self.fields[self.objective_id].get('optype') == 'numeric'
+
+    def _add_models_attrs(self, model, max_models=None):
+        """ Adds the boosting and fields info when the ensemble is built from
+            a list of models. They can be either Model objects
+            or the model dictionary info structure.
+
+        """
+        if isinstance(model, Model):
+            self.boosting = model.boosting
+            self.objective_id = model.objective_id if not self.boosting \
+                else self.boosting["objective_field"]
+            if self.boosting:
+                self.fields = {}
+                self.fields.update(model.fields)
+                del self.fields[model.objective_id]
+        else:
+            if model['object']['boosted_ensemble']:
+                self.boosting = model['object']['boosting']
+            if self.fields is None:
+                self.fields, _ = self.all_model_fields( \
+                    max_models=max_models)
+            if self.boosting:
+                self.objective_id = self.boosting['objective_field']
+                del self.fields[model['object']['objective_field']]
+            else:
+                self.objective_id = model['object']['objective_field']
 
     def get_ensemble_resource(self, ensemble):
         """Extracts the ensemble resource info. The ensemble argument can be
@@ -231,11 +301,10 @@ class Ensemble(object):
                        combination method.
         """
 
-
         if len(self.models_splits) > 1:
             # If there's more than one chunck of models, they must be
             # sequentially used to generate the votes for the prediction
-            votes = MultiVote([])
+            votes = MultiVote([], boosting=self.boosting is not None)
             for models_split in self.models_splits:
                 if not isinstance(models_split[0], Model):
                     if (self.cache_get is not None and
@@ -254,7 +323,8 @@ class Ensemble(object):
                         models = [retrieve_resource(self.api, model_id,
                                                     query_string=ONLY_MODEL)
                                   for model_id in models_split]
-                multi_model = MultiModel(models, api=self.api)
+                multi_model = MultiModel(models, api=self.api,
+                                         fields=self.fields)
                 votes_split = multi_model.generate_votes(
                     input_data, by_name=by_name,
                     missing_strategy=missing_strategy,
@@ -272,10 +342,16 @@ class Ensemble(object):
                 input_data, by_name=by_name, missing_strategy=missing_strategy,
                 add_median=(add_median or median), add_min=add_min,
                 add_max=add_max, add_unused_fields=add_unused_fields)
-            votes = MultiVote(votes_split.predictions)
+            votes = MultiVote(votes_split.predictions,
+                              boosting=self.boosting is not None)
             if median:
                 for prediction in votes.predictions:
                     prediction['prediction'] = prediction['median']
+        if self.boosting is not None and not self.regression:
+            categories = [ \
+                d[0] for d in
+                self.fields[self.objective_id]["summary"]["categories"]]
+            options = {"categories": categories}
         result = votes.combine(method=method, with_confidence=with_confidence,
                                add_confidence=add_confidence,
                                add_distribution=add_distribution,
@@ -301,6 +377,14 @@ class Ensemble(object):
         """
         field_importance = {}
         field_names = {}
+        if self.importance:
+            field_importance = self.importance
+            field_names = {field_id: {'name': self.fields[field_id]["name"] } \
+                           for field_id in field_importance.keys()}
+            return [list(importance) for importance in \
+                sorted(field_importance.items(), key=lambda x: x[1],
+                       reverse=True)], field_names
+
         if (self.distributions is not None and
                 isinstance(self.distributions, list) and
                 all('importance' in item for item in self.distributions)):
@@ -348,6 +432,7 @@ class Ensemble(object):
         """
         ensemble_distribution = []
         categories = []
+        distribution = []
         for model_distribution in self.distributions:
             summary = model_distribution[distribution_type]
             if 'bins' in summary:
@@ -356,6 +441,8 @@ class Ensemble(object):
                 distribution = summary['counts']
             elif 'categories' in summary:
                 distribution = summary['categories']
+            else:
+                distribution = []
             for point, instances in distribution:
                 if point in categories:
                     ensemble_distribution[
@@ -372,15 +459,17 @@ class Ensemble(object):
         """
         distribution = self.get_data_distribution("training")
 
-        out.write(u"Data distribution:\n")
-        print_distribution(distribution, out=out)
-        out.write(u"\n\n")
+        if distribution:
+            out.write(u"Data distribution:\n")
+            print_distribution(distribution, out=out)
+            out.write(u"\n\n")
 
         predictions = self.get_data_distribution("predictions")
 
-        out.write(u"Predicted distribution:\n")
-        print_distribution(predictions, out=out)
-        out.write(u"\n\n")
+        if predictions:
+            out.write(u"Predicted distribution:\n")
+            print_distribution(predictions, out=out)
+            out.write(u"\n\n")
 
         out.write(u"Field importance:\n")
         self.print_importance(out=out)

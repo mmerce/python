@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2015-2016 BigML
+# Copyright 2015-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -19,10 +19,11 @@
 """ Comparing remote and local predictions
 
 """
-from world import world, setup_module, teardown_module
+from world import world, setup_module, teardown_module, show_doc
 import create_source_steps as source_create
 import create_dataset_steps as dataset_create
 import create_model_steps as model_create
+import create_ensemble_steps as ensemble_create
 import create_association_steps as association_create
 import create_cluster_steps as cluster_create
 import create_anomaly_steps as anomaly_create
@@ -62,18 +63,14 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | time_3 | data_input                             | objective | prediction  |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal width": 0.5}                   | 000004    | Iris-setosa |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal length": 6, "petal width": 2}  | 000004    | Iris-virginica |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal length": 4, "petal width": 1.5}| 000004    | Iris-versicolor |
-                | ../data/iris_sp_chars.csv | 10      | 10     | 10     | {"pétal.length": 4, "pétal&width\u0000": 1.5}| 000004    | Iris-versicolor |
 
         """
-        print self.test_scenario1.__doc__
         examples = [
             ['data/iris.csv', '10', '10', '10', '{"petal width": 0.5}', '000004', 'Iris-setosa'],
             ['data/iris.csv', '10', '10', '10', '{"petal length": 6, "petal width": 2}', '000004', 'Iris-virginica'],
             ['data/iris.csv', '10', '10', '10', '{"petal length": 4, "petal width": 1.5}', '000004', 'Iris-versicolor'],
             ['data/iris_sp_chars.csv', '10', '10', '10', '{"pétal.length": 4, "pétal&width\u0000": 1.5}', '000004', 'Iris-versicolor']]
+        show_doc(self.test_scenario1, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -106,20 +103,8 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | time_3 | options | data_input                             | objective | prediction  |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}} |{"Message": "Mobile call"}             | 000000    | ham    |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}} |{"Message": "A normal message"}        | 000000    | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": false, "use_stopwords": false, "language": "en"}}}} |{"Message": "Mobile calls"}          | 000000    | spam   |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": false, "use_stopwords": false, "language": "en"}}}} |{"Message": "A normal message"}       | 000000    | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": true, "use_stopwords": true, "language": "en"}}}} |{"Message": "Mobile call"}            | 000000    | spam    |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": true, "use_stopwords": true, "language": "en"}}}} |{"Message": "A normal message"}       | 000000    | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}} |{"Message": "FREE for 1st week! No1 Nokia tone 4 ur mob every week just txt NOKIA to 87077 Get txting and tell ur mates. zed POBox 36504 W45WQ norm150p/tone 16+"}       | 000000    | spam     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}} |{"Message": "Ok"}       | 000000    | ham     |
-                | ../data/movies.csv | 20      | 20     | 30     | {"fields": {"000007": {"optype": "items", "item_analysis": {"separator": "$"}}}} |{"genres": "Adventure$Action", "timestamp": 993906291, "occupation": "K-12 student"}'| 000009| 3.93064
-                | ../data/text_missing.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}, {"000000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}} |{}       | 000003 | paperwork     |
-
 
         """
-        print self.test_scenario2.__doc__
         examples = [
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Message": "Mobile call"}', '000000', 'ham'],
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Message": "A normal message"}', '000000', 'ham'],
@@ -131,6 +116,7 @@ class TestComparePrediction(object):
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}}', '{"Message": "Ok"}', '000000', 'ham'],
             ['data/movies.csv', '20', '20', '30', '{"fields": {"000007": {"optype": "items", "item_analysis": {"separator": "$"}}}}', '{"genres": "Adventure$Action", "timestamp": 993906291, "occupation": "K-12 student"}', '000009', '3.93064'],
             ['data/text_missing.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}, "000000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}}', '{}', "000003", 'swap']]
+        show_doc(self.test_scenario2, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -166,18 +152,14 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data               | time_1  | time_2 | time_3 | data_input           | objective | prediction     | confidence |
-                | ../data/iris.csv   | 10      | 10     | 10     | {}                   | 000004    | Iris-setosa    | 0.2629     |
-                | ../data/grades.csv | 10      | 10     | 10     | {}                   | 000005    | 68.62224       | 27.5358    |
-                | ../data/grades.csv | 10      | 10     | 10     | {"Midterm": 20}      | 000005    | 46.69889      | 37.27594297134128   |
-                | ../data/grades.csv | 10      | 10     | 10     | {"Midterm": 20, "Tutorial": 90, "TakeHome": 100}     | 000005    | 28.06      | 24.86634   |
 
         """
-        print self.test_scenario3.__doc__
         examples = [
             ['data/iris.csv', '10', '10', '10', '{}', '000004', 'Iris-setosa', '0.2629'],
             ['data/grades.csv', '10', '10', '10', '{}', '000005', '68.62224', '27.5358'],
             ['data/grades.csv', '10', '10', '10', '{"Midterm": 20}', '000005', '40.46667', '37.27594297134128'],
             ['data/grades.csv', '10', '10', '10', '{"Midterm": 20, "Tutorial": 90, "TakeHome": 100}', '000005', '28.06', '24.86634']]
+        show_doc(self.test_scenario3, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -213,7 +195,6 @@ class TestComparePrediction(object):
                 | data             | time_1  | time_2 | time_3 | options | data_input                            | centroid  | distance |
 
         """
-        print self.test_scenario4.__doc__
         examples = [
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Type": "ham", "Message": "Mobile call"}', 'Cluster 7', '0.36637'],
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false}}}}', '{"Type": "ham", "Message": "A normal message"}', 'Cluster 0', '0.5'],
@@ -228,6 +209,7 @@ class TestComparePrediction(object):
             ['data/diabetes.csv', '20', '20', '30', '{"fields": {}}', '{"pregnancies": 0, "plasma glucose": 118, "blood pressure": 84, "triceps skin thickness": 47, "insulin": 230, "bmi": 45.8, "diabetes pedigree": 0.551, "age": 31, "diabetes": true}', 'Cluster 3', '0.5033378686559257'],
             ['data/iris_sp_chars.csv', '20', '20', '30', '{"fields": {}}', '{"pétal.length":1, "pétal&width\u0000": 2, "sépal.length":1, "sépal&width": 2, "spécies": "Iris-setosa"}', 'Cluster 7', '0.8752380218327035'],
             ['data/movies.csv', '20', '20', '30', '{"fields": {"000007": {"optype": "items", "item_analysis": {"separator": "$"}}}}', '{"gender": "Female", "age_range": "18-24", "genres": "Adventure$Action", "timestamp": 993906291, "occupation": "K-12 student", "zipcode": 59583, "rating": 3}', 'Cluster 1', '0.7294650227133437']]
+        show_doc(self.test_scenario4, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -260,12 +242,11 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | time_3 | options | data_input                            | centroid  | distance | full_data_input
-                | ../data/iris.csv | 20      | 20     | 30     | {"summary_fields": ["sepal width"]} |{"petal length": 1, "petal width": 1, "sepal length": 1, "species": "Iris-setosa"}             | Cluster 2   | 1.1643644909783857   |
         """
-        print self.test_scenario5.__doc__
         examples = [
             ['data/iris.csv', '20', '20', '30', '{"summary_fields": ["sepal width"]}', '{"petal length": 1, "petal width": 1, "sepal length": 1, "species": "Iris-setosa"}', 'Cluster 2', '1.16436', '{"petal length": 1, "petal width": 1, "sepal length": 1, "species": "Iris-setosa"}'],
             ['data/iris.csv', '20', '20', '30', '{"default_numeric_value": "zero"}', '{"petal length": 1}', 'Cluster 4', '1.41215', '{"petal length": 1, "petal width": 0, "sepal length": 0, "sepal width": 0, "species": ""}']]
+        show_doc(self.test_scenario5, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -299,14 +280,11 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data               | time_1  | time_2 | time_3 | data_input           | objective | prediction     | confidence |
-                | ../data/iris_missing2.csv   | 10      | 10     | 10     | {"petal width": 1}             | 000004    | Iris-setosa    | 0.8064     |
-                | ../data/iris_missing2.csv   | 10      | 10     | 10     | {"petal width": 1, "petal length": 4}             | 000004    | Iris-versicolor    | 0.7847     |
-
         """
-        print self.test_scenario6.__doc__
         examples = [
             ['data/iris_missing2.csv', '10', '10', '10', '{"petal width": 1}', '000004', 'Iris-setosa', '0.8064'],
             ['data/iris_missing2.csv', '10', '10', '10', '{"petal width": 1, "petal length": 4}', '000004', 'Iris-versicolor', '0.7847']]
+        show_doc(self.test_scenario6, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -340,12 +318,11 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data                 | time_1  | time_2 | time_3 | data_input                            | score  |
-                | ../data/tiny_kdd.csv | 20      | 20     | 30     |{"000020": 255.0, "000004": 183.0, "000016": 4.0, "000024": 0.04, "000025": 0.01, "000026": 0.0, "000019": 0.25, "000017": 4.0, "000018": 0.25, "00001e": 0.0, "000005": 8654.0, "000009": "0", "000023": 0.01, "00001f": 123.0}            | 0.69802  |
 
         """
-        print self.test_scenario7.__doc__
         examples = [
             ['data/tiny_kdd.csv', '20', '20', '30', '{"000020": 255.0, "000004": 183.0, "000016": 4.0, "000024": 0.04, "000025": 0.01, "000026": 0.0, "000019": 0.25, "000017": 4.0, "000018": 0.25, "00001e": 0.0, "000005": 8654.0, "000009": "0", "000023": 0.01, "00001f": 123.0}', '0.69802']]
+        show_doc(self.test_scenario7, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -377,15 +354,7 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | time_3 | data_input                                                                                 | prediction  |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal width": 0.5, "petal length": 0.5, "sepal width": 0.5, "sepal length": 0.5}         | 'Iris-versicolor' |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal width": 2, "petal length": 6, "sepal width": 0.5, "sepal length": 0.5}             | Iris-virginica |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal width": 1.5, "petal length": 4, "sepal width": 0.5, "sepal length": 0.5}           | Iris-versicolor |
-                | ../data/iris.csv | 10      | 10     | 10     | {"petal width": 1}                                                                         | Iris-versicolor |
-                | ../data/iris_sp_chars.csv | 10      | 10     | 10     | {"pétal.length": 4, "pétal&width\u0000": 1.5, "sépal&width": 0.5, "sépal.length": 0.5}| Iris-virginica |
-                | ../data/price.csv | 10      | 10     | 10     | {"Price": 1200}| Product1 |
-
         """
-        print self.test_scenario8.__doc__
         examples = [
             ['data/iris.csv', '10', '10', '50', '{"petal width": 0.5, "petal length": 0.5, "sepal width": 0.5, "sepal length": 0.5}', 'Iris-versicolor'],
             ['data/iris.csv', '10', '10', '50', '{"petal width": 2, "petal length": 6, "sepal width": 0.5, "sepal length": 0.5}', 'Iris-versicolor'],
@@ -393,6 +362,7 @@ class TestComparePrediction(object):
             ['data/iris.csv', '10', '10', '50', '{"petal length": 1}', 'Iris-setosa'],
             ['data/iris_sp_chars.csv', '10', '10', '50', '{"pétal.length": 4, "pétal&width\u0000": 1.5, "sépal&width": 0.5, "sépal.length": 0.5}', 'Iris-versicolor'],
             ['data/price.csv', '10', '10', '50', '{"Price": 1200}', 'Product1']]
+        show_doc(self.test_scenario8, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -426,18 +396,8 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | time_3 | options | data_input                             | prediction  |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}} |{"Message": "Mobile call"}             | ham    |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}} |{"Message": "A normal message"}        | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": false, "use_stopwords": false, "language": "en"}}}} |{"Message": "Mobile calls"}          | ham   |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": false, "use_stopwords": false, "language": "en"}}}} |{"Message": "A normal message"}       | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": true, "use_stopwords": true, "language": "en"}}}} |{"Message": "Mobile call"}             | ham    |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": true, "use_stopwords": true, "language": "en"}}}} |{"Message": "A normal message"}       | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}} |{"Message": "FREE for 1st week! No1 Nokia tone 4 ur mob every week just txt NOKIA to 87077 Get txting and tell ur mates. zed POBox 36504 W45WQ norm150p/tone 16+"}       | ham     |
-                | ../data/spam.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}} |{"Message": "Ok"}       | ham     |
-
 
         """
-        print self.test_scenario9.__doc__
         examples = [
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Message": "Mobile call"}', 'ham'],
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Message": "A normal message"}', 'ham'],
@@ -447,6 +407,7 @@ class TestComparePrediction(object):
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": false, "stem_words": true, "use_stopwords": true, "language": "en"}}}}', '{"Message": "A normal message"}', 'ham'],
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}}', '{"Message": "FREE for 1st week! No1 Nokia tone 4 ur mob every week just txt NOKIA to 87077 Get txting and tell ur mates. zed POBox 36504 W45WQ norm150p/tone 16+"}', 'ham'],
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}}', '{"Message": "Ok"}', 'ham']]
+        show_doc(self.test_scenario9, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -482,14 +443,13 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | objective | time_3 | options | data_input                             | prediction  | probability
-                | ../data/spam.csv | 20      | 20     | 000002 | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}} |{"Message": "A normal message"}       | ham     | 0.7645
 
         """
-        print self.test_scenario10.__doc__
         examples = [
-            ['data/spam.csv', '20', '20', '80', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}}', '{"Message": "A normal message"}', 'ham', 0.9169, "000000"],
-            ['data/spam.csv', '20', '20', '80', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}}', '{"Message": "mobile"}', 'ham', 0.815, "000000"],
-            ['data/movies.csv', '20', '20', '80', '{"fields": {"000007": {"optype": "items", "item_analysis": {"separator": "$"}}}}', '{"gender": "Female", "genres": "Adventure$Action", "timestamp": 993906291, "occupation": "K-12 student", "zipcode": 59583, "rating": 3}', 'Under 18', '0.8393', '000002']]
+            ['data/spam.csv', '20', '20', '180', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "full_terms_only", "language": "en"}}}}', '{"Message": "A normal message"}', 'ham', 0.9169, "000000"],
+            ['data/spam.csv', '20', '20', '180', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}}', '{"Message": "mobile"}', 'ham', 0.815, "000000"],
+            ['data/movies.csv', '20', '20', '180', '{"fields": {"000007": {"optype": "items", "item_analysis": {"separator": "$"}}}}', '{"gender": "Female", "genres": "Adventure$Action", "timestamp": 993906291, "occupation": "K-12 student", "zipcode": 59583, "rating": 3}', 'Under 18', '0.8393', '000002']]
+        show_doc(self.test_scenario10, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -524,13 +484,12 @@ class TestComparePrediction(object):
                 Then the local prediction is "<prediction>"
 
                 Examples:
-                | ../data/text_missing.csv | 20      | 20     | 30     | {"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}, {"000000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}} |{}       | paperwork     |
 
         """
-        print self.test_scenario11.__doc__
         examples = [
             ['data/text_missing.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}, "000000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}}', '{}', "000003",'swap'],
             ['data/text_missing.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}, "000000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}}', '{"category1": "a"}', "000003",'paperwork']]
+        show_doc(self.test_scenario11, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -566,12 +525,13 @@ class TestComparePrediction(object):
                 And the local logistic regression probability for the prediction is "<probability>"
 
         """
-        print self.test_scenario12.__doc__
         examples = [
-            ['data/iris.csv', '20', '20', '30', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0394, "000000", '{"field_codings": [{"field": "species", "coding": "dummy", "dummy_class": "Iris-setosa"}]}'],
-            ['data/iris.csv', '20', '20', '30', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0511, "000000", '{"balance_fields": false, "field_codings": [{"field": "species", "coding": "contrast", "coefficients": [[1, 2, -1, -2]]}]}'],
-            ['data/iris.csv', '20', '20', '30', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0511, "000000", '{"balance_fields": false, "field_codings": [{"field": "species", "coding": "other", "coefficients": [[1, 2, -1, -2]]}]}'],
-            ['data/iris.csv', '20', '20', '30', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0417, "000000", '{"bias": false}']]
+            ['data/iris.csv', '20', '20', '130', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0394, "000000", '{"field_codings": [{"field": "species", "coding": "dummy", "dummy_class": "Iris-setosa"}]}'],
+            ['data/iris.csv', '20', '20', '130', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0511, "000000", '{"balance_fields": false, "field_codings": [{"field": "species", "coding": "contrast", "coefficients": [[1, 2, -1, -2]]}]}'],
+            ['data/iris.csv', '20', '20', '130', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0511, "000000", '{"balance_fields": false, "field_codings": [{"field": "species", "coding": "other", "coefficients": [[1, 2, -1, -2]]}]}'],
+            ['data/iris.csv', '20', '20', '130', '{"fields": {"000000": {"optype": "categorical"}}}', '{"species": "Iris-setosa"}', '5.0', 0.0417, "000000", '{"bias": false}']]
+        show_doc(self.test_scenario12, examples)
+
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -608,14 +568,12 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data               | time_1  | time_2 | time_3 | data_input           | objective | prediction     | confidence |
-                | ../data/iris.csv   | 10      | 10     | 10     | {}                   | 000004    | Iris-setosa    | 0.25284     |
-                | ../data/iris.csv   | 10      | 10     | 10     | {"petal length":1, "sepal length":1, "petal width": 1, "sepal width": 1}  | 000004    | Iris-setosa    | 0.7575     |
 
         """
-        print self.test_scenario13.__doc__
         examples = [
             ['data/iris_unbalanced.csv', '10', '10', '10', '{}', '000004', 'Iris-setosa', '0.25284'],
             ['data/iris_unbalanced.csv', '10', '10', '10', '{"petal length":1, "sepal length":1, "petal width": 1, "sepal width": 1}', '000004', 'Iris-setosa', '0.7575']]
+        show_doc(self.test_scenario13, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -652,24 +610,10 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data               | time_1  | time_2 | objective | time_3 | options | data_input                             | prediction  | probability
-                | ../data/movies.csv | 20      | 20     | 000009    | 30     | {"fields": {'000000': {'name': 'user_id', 'optype': 'numeric'},
-                                                                                           '000001': {'name': 'gender', 'optype': 'categorical'},
-                                                                                           '000002': {'name': 'age_range', 'optype': 'categorical'},
-                                                                                           '000003': {'name': 'occupation', 'optype': 'categorical'},
-                                                                                           '000004': {'name': 'zipcode', 'optype': 'numeric'},
-                                                                                           '000005': {'name': 'movie_id', 'optype': 'numeric'},
-                                                                                           '000006': {'name': 'title', 'optype': 'text'},
-                                                                                           '000007': {'name': 'genres', 'optype': 'items',
-                                                                                                      'item_analysis': {'separator': "$"}},
-                                                                                           '000008': {'name': 'timestamp', 'optype': 'numeric'},
-                                                                                           '000009': {'name': 'rating', 'optype': 'categorical'}},
-                                                                               "source_parser": {"separator": ";"}}
-                |{"timestamp": "999999999"}       | 5     | 0.3231 | '{"balance_fields": true}'
 
         """
-        print self.test_scenario14.__doc__
         examples = [
-            ['data/movies.csv', '20', '20', '80', '{"fields": {"000000": {"name": "user_id", "optype": "numeric"},'
+            ['data/movies.csv', '20', '20', '180', '{"fields": {"000000": {"name": "user_id", "optype": "numeric"},'
                                                   ' "000001": {"name": "gender", "optype": "categorical"},'
                                                   ' "000002": {"name": "age_range", "optype": "categorical"},'
                                                   ' "000003": {"name": "occupation", "optype": "categorical"},'
@@ -681,7 +625,7 @@ class TestComparePrediction(object):
                                                   '"000008": {"name": "timestamp", "optype": "numeric"},'
                                                   '"000009": {"name": "rating", "optype": "categorical"}},'
                                                   '"source_parser": {"separator": ";"}}', '{"timestamp": "999999999"}', '4', 0.3231, "000009", '{"balance_fields": false}'],
-            ['data/movies.csv', '20', '20', '80', '{"fields": {"000000": {"name": "user_id", "optype": "numeric"},'
+            ['data/movies.csv', '20', '20', '180', '{"fields": {"000000": {"name": "user_id", "optype": "numeric"},'
                                                   ' "000001": {"name": "gender", "optype": "categorical"},'
                                                   ' "000002": {"name": "age_range", "optype": "categorical"},'
                                                   ' "000003": {"name": "occupation", "optype": "categorical"},'
@@ -693,7 +637,7 @@ class TestComparePrediction(object):
                                                   '"000008": {"name": "timestamp", "optype": "numeric"},'
                                                   '"000009": {"name": "rating", "optype": "categorical"}},'
                                                   '"source_parser": {"separator": ";"}}', '{"timestamp": "999999999"}', '4', 0.2622, "000009", '{"normalize": true}'],
-            ['data/movies.csv', '20', '20', '80', '{"fields": {"000000": {"name": "user_id", "optype": "numeric"},'
+            ['data/movies.csv', '20', '20', '180', '{"fields": {"000000": {"name": "user_id", "optype": "numeric"},'
                                                   ' "000001": {"name": "gender", "optype": "categorical"},'
                                                   ' "000002": {"name": "age_range", "optype": "categorical"},'
                                                   ' "000003": {"name": "occupation", "optype": "categorical"},'
@@ -705,6 +649,7 @@ class TestComparePrediction(object):
                                                   '"000008": {"name": "timestamp", "optype": "numeric"},'
                                                   '"000009": {"name": "rating", "optype": "categorical"}},'
                                                   '"source_parser": {"separator": ";"}}', '{"timestamp": "999999999"}', '4', 0.2622, "000009", '{"balance_fields": true, "normalize": true}']]
+        show_doc(self.test_scenario14, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -743,10 +688,10 @@ class TestComparePrediction(object):
                 | data             | time_1  | time_2 | time_3 | options | data_input                            | topic distribution  |
 
         """
-        print self.test_scenario15.__doc__
         examples = [
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Type": "ham", "Message": "Mobile call"}', '[0.01878, 0.00388, 0.00388, 0.00388, 0.20313, 0.47315, 0.00574, 0.05695, 0.00388, 0.19382, 0.00388, 0.02902]'],
             ['data/spam.csv', '20', '20', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"case_sensitive": true, "stem_words": true, "use_stopwords": false, "language": "en"}}}}', '{"Type": "ham", "Message": "Go until jurong point, crazy.. Available only in bugis n great world la e buffet... Cine there got amore wat..."}', '[0.00263, 0.01083, 0.00831, 0.06004, 0.33701, 0.00263, 0.01209, 0.44553, 0.0531, 0.00326, 0.06193, 0.00263]']]
+        show_doc(self.test_scenario15, examples)
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -761,6 +706,7 @@ class TestComparePrediction(object):
             prediction_compare.the_local_topic_distribution_is(self, example[6])
             topic_create.i_create_a_topic_distribution(self, example[5])
             prediction_compare.the_topic_distribution_is(self, example[6])
+
 
     def test_scenario16(self):
         """
@@ -778,13 +724,11 @@ class TestComparePrediction(object):
                 And I create a local association set for "<data_input>"
                 Then the local association set is like the contents of "<association_set_file>"
 
-                Examples:
-                | ../data/groceries.csv | 20      | 20     | 30     | {"fields": {"000000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}} | association_set.json       | {"field1": "cat food"}     |
-
         """
-        print self.test_scenario16.__doc__
         examples = [
             ['data/groceries.csv', '20', '20', '30', '{"fields": {"00000": {"optype": "text", "term_analysis": {"token_mode": "all", "language": "en"}}}}', 'data/associations/association_set.json', '{"field1": "cat food"}']]
+        show_doc(self.test_scenario16, examples)
+
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])
@@ -800,9 +744,102 @@ class TestComparePrediction(object):
             prediction_compare.i_create_a_local_association_set(self, example[6])
             prediction_compare.the_local_association_set_is_like_file(self, example[5])
 
+
     def test_scenario17(self):
         """
+            Scenario: Successfully comparing predictions for ensembles:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create an ensemble with "<params>"
+                And I wait until the ensemble is ready less than <time_3> secs
+                And I create a local ensemble
+                When I create a prediction for "<data_input>"
+                Then the prediction for "<objective>" is "<prediction>"
+                And I create a local prediction for "<data_input>"
+                Then the local prediction is "<prediction>"
+
+                Examples:
+                | data             | time_1  | time_2 | time_3 | data_input                             | objective | prediction  | params
+
+        """
+        examples = [
+            ['data/iris.csv', '10', '10', '120', '{"petal width": 0.5}', '000004', 'Iris-versicolor', '{"number_of_models": 5}'],
+            ['data/iris.csv', '10', '10', '120', '{"petal length": 6, "petal width": 2}', '000004', 'Iris-virginica', '{"number_of_models": 5}'],
+            ['data/iris.csv', '10', '10', '120', '{"petal length": 4, "petal width": 1.5}', '000004', 'Iris-versicolor', '{"number_of_models": 5}'],
+            ['data/grades.csv', '10', '10', '120', '{"Midterm": 20}', '000005', 46.261364, '{"number_of_models": 5}'],
+            ['data/iris.csv', '10', '10', '120', '{"petal width": 0.5}', '000004', 'Iris-setosa', '{"boosting": {"iterations": 5}, "number_of_models": 5}'],
+            ['data/iris.csv', '10', '10', '120', '{"petal length": 6, "petal width": 2}', '000004', 'Iris-virginica', '{"boosting": {"iterations": 5}, "number_of_models": 5}'],
+            ['data/iris.csv', '10', '10', '120', '{"petal length": 4, "petal width": 1.5}', '000004', 'Iris-versicolor', '{"boosting": {"iterations": 5}, "number_of_models": 5}'],
+            ['data/grades.csv', '10', '10', '120', '{"Midterm": 20}', '000005', 57.6555, '{"boosting": {"iterations": 5}, "number_of_models": 5}']]
+        show_doc(self.test_scenario17, examples)
+
+        for example in examples:
+            print "\nTesting with:\n", example
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(self, example[2])
+            ensemble_create.i_create_an_ensemble_with_params(self, example[7])
+            ensemble_create.the_ensemble_is_finished_in_less_than(self, example[3])
+            ensemble_create.create_local_ensemble(self)
+            prediction_create.i_create_an_ensemble_prediction(self, example[4])
+            prediction_create.the_prediction_is(self, example[5], example[6])
+            prediction_compare.i_create_a_local_ensemble_prediction(self, example[4])
+            prediction_compare.the_local_prediction_is(self, example[6])
+
+
+    def test_scenario18(self):
+        """
+            Scenario: Successfully comparing predictions for ensembles with proportional missing strategy:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create an esemble with "<params>"
+                And I wait until the ensemble is ready less than <time_3> secs
+                And I create a local ensemble
+                When I create a proportional missing strategy prediction for "<data_input>"
+                Then the prediction for "<objective>" is "<prediction>"
+                And the confidence for the prediction is "<confidence>"
+                And I create a proportional missing strategy local prediction for "<data_input>"
+                Then the local prediction is "<prediction>"
+                And the local prediction's confidence is "<confidence>"
+
+                Examples:
+                | data               | time_1  | time_2 | time_3 | data_input           | objective | prediction     | confidence | params
+
+        """
+        examples = [
+            ['data/iris.csv', '10', '10', '50', '{}', '000004', 'Iris-virginica', '0.33793', '{"boosting": {"iterations": 5}}'],
+            ['data/iris.csv', '10', '10', '50', '{}', '000004', 'Iris-versicolor', '0.3174', '{"number_of_models": 5}'],
+            ['data/grades.csv', '10', '10', '50', '{}', '000005', '70.505792', '30.7161', '{"number_of_models": 5}'],
+            ['data/grades.csv', '10', '10', '50', '{"Midterm": 20}', '000005', '45.4573', '29.58403', '{"number_of_models": 5}'],
+            ['data/grades.csv', '10', '10', '50', '{"Midterm": 20, "Tutorial": 90, "TakeHome": 100}', '000005', '42.814', '31.51804', '{"number_of_models": 5}']]
+        show_doc(self.test_scenario18, examples)
+
+        for example in examples:
+            print "\nTesting with:\n", example
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(self, example[2])
+            ensemble_create.i_create_an_ensemble_with_params(self, example[8])
+            ensemble_create.the_ensemble_is_finished_in_less_than(self, example[3])
+            ensemble_create.create_local_ensemble(self)
+            prediction_create.i_create_an_ensemble_proportional_prediction(self, example[4])
+            prediction_create.the_prediction_is(self, example[5], example[6])
+            prediction_create.the_confidence_is(self, example[7])
+            prediction_create.create_local_ensemble_proportional_prediction_with_confidence(self, example[4])
+            prediction_compare.the_local_ensemble_prediction_is(self, example[6])
+            prediction_compare.the_local_prediction_confidence_is(self, example[7])
+
+
+    def test_scenario19(self):
+        """
             Scenario: Successfully comparing logistic regression predictions with constant fields:
+
                 Given I create a data source uploading a "<data>" file
                 And I wait until the source is ready less than <time_1> secs
                 And I create a dataset
@@ -819,12 +856,12 @@ class TestComparePrediction(object):
 
                 Examples:
                 | data             | time_1  | time_2 | time_3 |time_4| data_input                                 | prediction  | field_id
-                | ../data/constant_field.csv | 10      | 10     | 10     |10    | {"a": 1, "b": 1, "c": 1}         | a | {"fields": {"000000": {"preferred": true}}}
 
         """
-        print self.test_scenario8.__doc__
         examples = [
             ['data/constant_field.csv', '10', '10', '50', '10','{"a": 1, "b": 1, "c": 1}', 'a', '{"fields": {"000000": {"preferred": true}}}']]
+        show_doc(self.test_scenario19, examples)
+
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])

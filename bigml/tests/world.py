@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2015-2016 BigML
+# Copyright 2015-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -88,6 +88,18 @@ def plural(resource_type):
 
     """
     return IRREGULAR_PLURALS.get(resource_type, "%ss" % resource_type)
+
+
+def show_doc(self, examples=None):
+    """ Shows the name and documentation of the method passed as argument
+
+    """
+    print "%s:\n%s" % (self.__name__, self.__doc__)
+    if examples:
+        print "                |%s" % \
+            "\n                |".join(["|".join([str(item)
+                                                  for item in example]) for
+                                        example in examples])
 
 
 class World(object):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2013-2016 BigML
+# Copyright 2013-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -53,6 +53,7 @@ import sys
 import locale
 import json
 
+
 from functools import partial
 
 from bigml.api import FINISHED
@@ -62,13 +63,15 @@ from bigml.util import (slugify, markdown_cleanup,
                         find_locale, cast)
 from bigml.util import DEFAULT_LOCALE
 from bigml.tree import Tree, LAST_PREDICTION, PROPORTIONAL
+from bigml.boostedtree import BoostedTree
 from bigml.predicate import Predicate
 from bigml.basemodel import BaseModel, retrieve_resource, print_importance
-from bigml.basemodel import ONLY_MODEL
+from bigml.basemodel import ONLY_MODEL, EXCLUDE_FIELDS
 from bigml.modelfields import check_model_fields
 from bigml.multivote import ws_confidence
 from bigml.io import UnicodeWriter
 from bigml.path import Path, BRIEF
+from bigml.prediction import Prediction
 
 
 LOGGER = logging.getLogger('BigML')
@@ -127,7 +130,7 @@ class Model(BaseModel):
 
     """
 
-    def __init__(self, model, api=None):
+    def __init__(self, model, api=None, fields=None):
         """The Model constructor can be given as first argument:
             - a model structure
             - a model id
@@ -137,6 +140,8 @@ class Model(BaseModel):
         self.resource_id = None
         self.ids_map = {}
         self.terms = {}
+        self.regression = False
+        self.boosting = None
         # the string can be a path to a JSON file
         if isinstance(model, basestring):
             try:
@@ -166,6 +171,7 @@ class Model(BaseModel):
         # checks whether the information needed for local predictions is in
         # the first argument
         if isinstance(model, dict) and \
+                not fields and \
                 not check_model_fields(model):
             # if the fields used by the model are not
             # available, use only ID to retrieve it again
@@ -176,46 +182,69 @@ class Model(BaseModel):
                 model['resource'] is not None):
             if api is None:
                 api = BigML(storage=STORAGE)
-            query_string = ONLY_MODEL
+            if fields is not None and isinstance(fields, dict):
+                query_string = EXCLUDE_FIELDS
+            else:
+                query_string = ONLY_MODEL
             model = retrieve_resource(api, self.resource_id,
                                       query_string=query_string)
         else:
             self.resource_id = get_model_id(model)
-        BaseModel.__init__(self, model, api=api)
+        BaseModel.__init__(self, model, api=api, fields=fields)
         if 'object' in model and isinstance(model['object'], dict):
             model = model['object']
 
         if 'model' in model and isinstance(model['model'], dict):
             status = get_status(model)
             if 'code' in status and status['code'] == FINISHED:
-                distribution = model['model']['distribution']['training']
-                # will store global information in the tree: regression and
-                # max_bins number
-                tree_info = {'max_bins': 0}
-                self.tree = Tree(
-                    model['model']['root'],
-                    self.fields,
-                    objective_field=self.objective_id,
-                    root_distribution=distribution,
-                    parent_id=None,
-                    ids_map=self.ids_map,
-                    tree_info=tree_info)
-                self.tree.regression = tree_info['regression']
-                if self.tree.regression:
-                    self._max_bins = tree_info['max_bins']
+
+                # boosting models are to be handled using the BoostedTree
+                # class
+                if model.get("boosted_ensemble"):
+                    self.boosting = model.get('boosting')
+                if self.boosting == {}:
+                    self.boosting = False
+
+                self.regression = \
+                    not self.boosting and \
+                    self.fields[self.objective_id]['optype'] == 'numeric' \
+                    or (self.boosting and \
+                    self.boosting.get("objective_class") is None)
+
+                if self.boosting:
+                    self.tree = BoostedTree(
+                        model['model']['root'],
+                        self.fields,
+                        objective_field=self.objective_id)
+                else:
+                    distribution = model['model']['distribution']['training']
+                    # will store global information in the tree: regression and
+                    # max_bins number
+                    tree_info = {'max_bins': 0}
+                    self.tree = Tree(
+                        model['model']['root'],
+                        self.fields,
+                        objective_field=self.objective_id,
+                        root_distribution=distribution,
+                        parent_id=None,
+                        ids_map=self.ids_map,
+                        tree_info=tree_info)
+                    self.tree.regression = tree_info['regression']
+                    if self.tree.regression:
+                        try:
+                            import numpy
+                            import scipy
+                            self._max_bins = tree_info['max_bins']
+                            self.regression_ready = True
+                        except ImportError:
+                            self.regression_ready = False
+
             else:
                 raise Exception("The model isn't finished yet")
         else:
             raise Exception("Cannot create the Model instance. Could not"
                             " find the 'model' key in the resource:\n\n%s" %
                             model)
-        if self.tree.regression:
-            try:
-                import numpy
-                import scipy
-                self.regression_ready = True
-            except ImportError:
-                self.regression_ready = False
 
     def list_fields(self, out=sys.stdout):
         """Prints descriptions of the fields for this model.
@@ -235,8 +264,8 @@ class Model(BaseModel):
         """Returns a list of leaves that are impure
 
         """
-        if self.tree.regression:
-            raise AttributeError("This method is available for "
+        if self.regression or self.boosting:
+            raise AttributeError("This method is available for non-boosting"
                                  " categorization models only.")
         def is_impure(node, impurity_threshold=impurity_threshold):
             """Returns True if the gini impurity of the node distribution
@@ -264,7 +293,7 @@ class Model(BaseModel):
         """Makes a prediction based on a number of field values.
 
         By default the input fields must be keyed by field name but you can use
-        `by_name` to input them directly keyed by id.
+        `by_name=False` to input them directly keyed by id.
 
         input_data: Input data to be predicted
         by_name: Boolean, True if input_data is keyed by names
@@ -312,7 +341,8 @@ class Model(BaseModel):
         """
         # Checks if this is a regression model, using PROPORTIONAL
         # missing_strategy
-        if (self.tree.regression and missing_strategy == PROPORTIONAL and
+        if (not self.boosting and
+                self.regression and missing_strategy == PROPORTIONAL and
                 not self.regression_ready):
             raise ImportError("Failed to find the numpy and scipy libraries,"
                               " needed to use proportional missing strategy"
@@ -333,6 +363,18 @@ class Model(BaseModel):
         prediction = self.tree.predict(input_data,
                                        missing_strategy=missing_strategy)
 
+        if self.boosting and missing_strategy == PROPORTIONAL:
+            # output has to be recomputed and comes in a different format
+            g_sum, h_sum, population, path = prediction
+            prediction = Prediction(
+                - g_sum / (h_sum +  self.boosting.get("lambda", 1)),
+                path,
+                None,
+                distribution=None,
+                count=population,
+                median=None,
+                distribution_unit=None)
+
         # Prediction path
         if print_path:
             out.write(utf8(u' AND '.join(prediction.path) + u' => %s \n' %
@@ -345,7 +387,7 @@ class Model(BaseModel):
                       prediction.distribution,
                       prediction.count,
                       prediction.median]
-        if multiple is not None and not self.tree.regression:
+        if multiple is not None and not self.regression:
             output = []
             total_instances = float(prediction.count)
             distribution = enumerate(prediction.distribution)
@@ -373,21 +415,21 @@ class Model(BaseModel):
                      'distribution_unit': prediction.distribution_unit})
             if add_count:
                 output.update({'count': prediction.count})
-            if self.tree.regression and add_median:
-                output.update({'median': prediction.median})
             if add_next:
                 field = (None if len(prediction.children) == 0 else
                          prediction.children[0].predicate.field)
                 if field is not None and field in self.fields:
                     field = self.fields[field]['name']
                 output.update({'next': field})
-            if self.tree.regression and add_min:
-                output.update({'min': prediction.min})
-            if self.tree.regression and add_max:
-                output.update({'max': prediction.max})
+            if not self.boosting and self.regression:
+                if add_median:
+                    output.update({'median': prediction.median})
+                if add_min:
+                    output.update({'min': prediction.min})
+                if add_max:
+                    output.update({'max': prediction.max})
             if add_unused_fields:
                 output.update({'unused_fields': unused_fields})
-
         return output
 
     def docstring(self):
@@ -427,6 +469,9 @@ class Model(BaseModel):
         `out` is file descriptor to write the rules.
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         ids_path = self.get_ids_path(filter_id)
         return self.tree.rules(out, ids_path=ids_path, subtree=subtree)
 
@@ -437,6 +482,9 @@ class Model(BaseModel):
         `out` is file descriptor to write the python code.
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         ids_path = self.get_ids_path(filter_id)
         if hadoop:
             return (self.hadoop_python_mapper(out=out,
@@ -454,6 +502,9 @@ class Model(BaseModel):
         `out` is file descriptor to write the tableau code.
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         ids_path = self.get_ids_path(filter_id)
         if hadoop:
             return "Hadoop output not available."
@@ -482,6 +533,9 @@ class Model(BaseModel):
                        - leaf predictions count
                        - confidence
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         groups = {}
         tree = self.tree
         distribution = tree.distribution
@@ -542,6 +596,9 @@ class Model(BaseModel):
         """Returns training data distribution
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         tree = self.tree
         distribution = tree.distribution
 
@@ -551,6 +608,9 @@ class Model(BaseModel):
         """Returns model predicted distribution
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         if groups is None:
             groups = self.group_prediction()
 
@@ -565,6 +625,9 @@ class Model(BaseModel):
         """Prints summary grouping distribution as class header and details
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         tree = self.tree
 
         def extract_common_path(groups):
@@ -667,6 +730,9 @@ class Model(BaseModel):
         """Returns a hadoop mapper header to make predictions in python
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         input_fields = [(value, key) for (key, value) in
                         sorted(self.inverted_fields.items(),
                                key=lambda x: x[1])]
@@ -886,6 +952,9 @@ if count > 0:
            running the training data through the model
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         total = 0.0
         cumulative_confidence = 0
         groups = self.group_prediction()
@@ -899,14 +968,20 @@ if count > 0:
         """Generator that yields the nodes information in a row format
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         return self.tree.get_nodes_info(headers, leaves_only=leaves_only)
 
     def tree_csv(self, file_name=None, leaves_only=False):
         """Outputs the node structure to a CSV file or array
 
         """
+        if self.boosting:
+            raise AttributeError("This method is not available for boosting"
+                                 " models.")
         headers_names = []
-        if self.tree.regression:
+        if self.regression:
             headers_names.append(
                 self.fields[self.tree.objective_id]['name'])
             headers_names.append("error")

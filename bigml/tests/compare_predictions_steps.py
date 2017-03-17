@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# Copyright 2012-2015 BigML
+# Copyright 2012-2017 BigML
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -34,8 +34,9 @@ from create_prediction_steps import check_prediction
 
 #@step(r'I retrieve a list of remote models tagged with "(.*)"')
 def i_retrieve_a_list_of_remote_models(step, tag):
-    world.list_of_models = [world.api.get_model(model['resource']) for model in
-                            world.api.list_models(query_string="tags__in=%s" % tag)['objects']]
+    world.list_of_models = [ \
+        world.api.get_model(model['resource']) for model in
+        world.api.list_models(query_string="tags__in=%s" % tag)['objects']]
 
 
 #@step(r'I create a local model from a "(.*)" file$')
@@ -61,7 +62,8 @@ def i_create_a_local_prediction_with_confidence(step, data=None):
     if data is None:
         data = "{}"
     data = json.loads(data)
-    world.local_prediction = world.local_model.predict(data, add_confidence=True)
+    world.local_prediction = world.local_model.predict(data,
+                                                       add_confidence=True)
 
 
 #@step(r'I create a local prediction for "(.*)"$')
@@ -70,6 +72,13 @@ def i_create_a_local_prediction(step, data=None):
         data = "{}"
     data = json.loads(data)
     world.local_prediction = world.local_model.predict(data)
+
+#@step(r'I create a local ensemble prediction for "(.*)"$')
+def i_create_a_local_ensemble_prediction(step, data=None):
+    if data is None:
+        data = "{}"
+    data = json.loads(data)
+    world.local_prediction = world.local_ensemble.predict(data)
 
 
 #@step(r'I create a local prediction using median for "(.*)"$')
@@ -89,12 +98,14 @@ def i_create_a_local_mm_median_batch_prediction(self, data=None):
         [data], to_file=False, use_median=True)[0].predictions[0]['prediction']
 
 
-#@step(r'I create a proportional missing strategy local prediction using median for "(.*)"$')
+#@step(r'I create a proportional missing strategy local prediction
+# using median for "(.*)"$')
 def i_create_a_local_proportional_median_prediction(step, data=None):
     if data is None:
         data = "{}"
     data = json.loads(data)
-    world.local_prediction = world.local_model.predict(data, missing_strategy=1, median=True)
+    world.local_prediction = world.local_model.predict( \
+        data, missing_strategy=1, median=True)
 
 
 #@step(r'I create a local cluster')
@@ -126,15 +137,14 @@ def i_create_a_local_anomaly(step):
 #@step(r'I create a local anomaly score for "(.*)"$')
 def i_create_a_local_anomaly_score(step, input_data):
     input_data = json.loads(input_data)
-    world.local_anomaly_score = world.local_anomaly.anomaly_score(input_data,
-                                                                  by_name=False)
+    world.local_anomaly_score = world.local_anomaly.anomaly_score( \
+        input_data, by_name=False)
 
 #@step(r'the local anomaly score is "(.*)"$')
 def the_local_anomaly_score_is(step, score):
-    if str(round(world.local_anomaly_score, 2)) != str(round(float(score), 2)):
-        assert False, ("Found: %s, expected: %s" %
-                       (str(round(world.local_anomaly_score, 2)),
-                        round(float(score), 2)))
+    eq_(str(round(world.local_anomaly_score, 2)),
+        str(round(float(score), 2)))
+
 
 #@step(r'I create a local association')
 def i_create_a_local_association(step):
@@ -165,6 +175,7 @@ def i_create_a_batch_prediction_from_a_multi_model(step, data=None):
     world.local_prediction = world.local_model.batch_predict(data,
                                                              to_file=False)
 
+
 #@step(r'the predictions are "(.*)"')
 def the_batch_mm_predictions_are(step, predictions):
     if predictions is None:
@@ -188,7 +199,8 @@ def the_local_prediction_confidence_is(step, confidence):
         isinstance(world.local_prediction, tuple)):
         local_confidence = world.local_prediction[1]
     else:
-        local_confidence = world.local_prediction['confidence']
+        local_confidence = world.local_prediction.get('confidence', \
+            world.local_prediction.get('probability'))
     local_confidence = round(float(local_confidence), 4)
     confidence = round(float(confidence), 4)
     eq_(local_confidence, confidence)
@@ -207,16 +219,31 @@ def the_local_prediction_is(step, prediction):
         if not isinstance(world.local_model, LogisticRegression):
             if isinstance(local_model, MultiModel):
                 local_model = local_model.models[0]
-            if local_model.tree.regression:
+            if local_model.regression:
                 local_prediction = round(float(local_prediction), 4)
                 prediction = round(float(prediction), 4)
     except AttributeError:
-        local_model = world.local_ensemble.multi_model.models[0]
-        if local_model.tree.regression:
-            local_prediction = round(float(local_prediction), 4)
-            prediction = round(float(prediction), 4)
-
+        local_model = world.local_ensemble
+        if local_model.regression:
+            assert_almost_equal(local_prediction, float(prediction), places=5)
     eq_(local_prediction, prediction)
+
+
+#@step(r'the local ensemble prediction is "(.*)"')
+def the_local_ensemble_prediction_is(step, prediction):
+    if (isinstance(world.local_prediction, list) or
+        isinstance(world.local_prediction, tuple)):
+        local_prediction = world.local_prediction[0]
+    elif isinstance(world.local_prediction, dict):
+        local_prediction = world.local_prediction['prediction']
+    else:
+        local_prediction = world.local_prediction
+    local_model = world.local_ensemble
+    if local_model.regression:
+        assert_almost_equal(local_prediction, float(prediction), places=5)
+    else:
+        eq_(local_prediction, prediction)
+
 
 #@step(r'the local probability is "(.*)"')
 def the_local_probability_is(step, probability):
@@ -251,7 +278,7 @@ def the_confidence_weighted_prediction(step, predictions):
     predictions = eval(predictions)
     for i in range(len(world.votes)):
         combined_prediction = world.votes[i].combine(1)
-        assert combined_prediction == predictions[i]
+        eq_(combined_prediction, predictions[i])
 
 #@step(r'I create a local logistic regression model$')
 def i_create_a_local_logistic_model(step):
