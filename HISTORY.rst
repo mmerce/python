@@ -3,6 +3,11 @@
 History
 -------
 
+4.11.3 (2017-08-20)
+~~~~~~~~~~~~~~~~~~~
+
+- Fixing bug: ensembles can now be shared using a shared/hash URL.
+
 4.11.2 (2017-07-29)
 ~~~~~~~~~~~~~~~~~~~
 
