@@ -3,6 +3,18 @@
 History
 -------
 
+4.12.0 (2017-10-04)
+~~~~~~~~~~~~~~~~~~~
+
+- Adding support for Deepnets REST API calls and local predictions using
+  the local Deepnet object.
+
+4.11.3 (2017-09-29)
+~~~~~~~~~~~~~~~~~~~
+
+- Fixing bug in the local Ensemble object. Failed to use the
+  stored ensemble object.
+
 4.11.2 (2017-07-29)
 ~~~~~~~~~~~~~~~~~~~
 

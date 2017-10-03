@@ -64,11 +64,11 @@ class TestComparePrediction(object):
 
         """
         examples = [
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5}}', '{"000005": [{"point_forecast": [68.53181, 68.53181, 68.53181, 68.53181, 68.53181], "model": "A,N,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,N,N"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [68.50838, 68.50838, 68.50838, 68.50838, 68.50838], "model": "M,N,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,A,N"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [75.00015, 75.16225, 75.32435, 75.48645, 75.64855], "model": "A,A,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,Ad,N"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [73.32521, 73.38823, 73.45, 73.51052, 73.56984], "model": "A,Ad,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5}, "000001": {"horizon": 3, "ets_models": {"criterion": "aic", "limit": 2}}}', '{"000005": [{"point_forecast": [68.53181, 68.53181, 68.53181, 68.53181, 68.53181], "model": "A,N,N"}], "000001": [{"point_forecast": [54.77665, 90.00943, 83.59285], "model": "A,N,A"}, {"point_forecast": [55.88282, 90.52555, 83.44909], "model": "A,Ad,A"}]}', '{"objective_fields": ["000001", "000005"]}']]
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5}}', '{"000005": [{"point_forecast": [68.50243, 68.50243, 68.50243, 68.50243, 68.50243], "model": "A,N,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,N,N"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [68.47181, 68.47181, 68.47181, 68.47181, 68.47181], "model": "M,N,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,A,N"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [72.54131, 72.64131, 72.74131, 72.84131, 72.94131], "model": "A,A,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,Ad,N"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [69.87368, 69.89291, 69.91175, 69.93022, 69.94831], "model": "A,Ad,N"}]}', '{"objective_fields": ["000001", "000005"]}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5}, "000001": {"horizon": 3, "ets_models": {"criterion": "aic", "limit": 2}}}', '{"000005": [{"point_forecast": [68.50243, 68.50243, 68.50243, 68.50243, 68.50243], "model": "A,N,N"}], "000001": [{"point_forecast": [54.73965, 89.70194, 82.0656], "model": "A,N,A"}, {"point_forecast": [56.84168, 91.91525, 84.8288], "model": "A,A,A"}]}', '{"objective_fields": ["000001", "000005"]}']]
         show_doc(self.test_scenario1, examples)
 
         for example in examples:
@@ -107,10 +107,10 @@ class TestComparePrediction(object):
         """
         examples = [
 
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5}}', '{"000005": [{"point_forecast": [68.53181, 68.53181, 68.53181, 68.53181, 68.53181], "model": "A,N,N"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,N,A"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [72.51702, 72.29175, 66.73389, 72.20277, 69.47615], "model": "M,N,A"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,A,A"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [69.60446, 74.28786, 67.46402, 75.91042, 72.52807], "model": "A,A,A"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,Ad,A"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":[66.28032, 71.15014, 65.99847, 73.28416, 71.04533], "model": "A,Ad,A"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}']]
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5}}', '{"000005": [{"point_forecast": [68.50243, 68.50243, 68.50243, 68.50243, 68.50243], "model": "A,N,N"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,N,A"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [72.09715, 72.11611, 66.58929, 71.71928, 69.29861], "model": "M,N,A"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,A,A"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [68.56915, 73.55705, 68.07577, 74.99042, 72.51314], "model": "A,A,A"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["A,Ad,A"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":[66.16225, 72.17308, 66.65573, 73.09698, 70.51449], "model": "A,Ad,A"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}']]
         show_doc(self.test_scenario2, examples)
 
         for example in examples:
@@ -126,7 +126,6 @@ class TestComparePrediction(object):
             forecast_create.the_forecast_is(self, example[5])
             forecast_compare.i_create_a_local_forecast(self, example[4])
             forecast_compare.the_local_forecast_is(self, example[5])
-
 
     def test_scenario3(self):
         """
@@ -150,11 +149,11 @@ class TestComparePrediction(object):
 
         """
         examples = [
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,N,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [72.17615, 72.03876, 66.47413, 69.65207, 68.69178], "model": "M,N,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,A,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [74.64993, 76.14421, 68.47124, 74.19305, 73.51855], "model": "M,A,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,M,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [74.22947, 78.06875, 69.96644, 75.98277, 75.92554], "model": "M,M,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,Ad,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":[73.80787, 74.61327, 67.30521, 73.12079, 72.03179], "model": "M,Ad,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
-            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,Md,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [74.65602, 74.79726, 67.07633, 72.56983, 72.23638], "model": "M,Md,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}']]
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,N,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast":  [72.39954, 71.72705, 66.45629, 69.92079, 68.9178], "model": "M,N,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,A,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [75.8422, 76.16165, 68.78198, 74.59676, 73.37048], "model": "M,A,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,M,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [76.18187, 77.95967, 70.45434, 75.35636, 74.66747], "model": "M,M,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,Ad,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [73.75816, 74.60699, 66.71212, 72.49586, 71.76787], "model": "M,Ad,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}'],
+            ['data/grades.csv', '10', '10', '120', '{"000005": {"horizon": 5, "ets_models": {"names": ["M,Md,M"], "criterion": "aic", "limit": 3}}}', '{"000005": [{"point_forecast": [74.3725, 75.02963, 67.15826, 73.19628, 71.66919], "model": "M,Md,M"}]}', '{"objective_fields": ["000001", "000005"], "period": 12}']]
         show_doc(self.test_scenario3, examples)
 
         for example in examples:
