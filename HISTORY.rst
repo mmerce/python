@@ -8,6 +8,7 @@ History
 
 - Deprecating `dev_mode` flag from BigML's API connection. The development
   environment has been deprecated.
+- Adding support for configurations.
 - Fixing bug in local cluster output to CSV.
 - Improving docs with local batch predictions examples.
 
