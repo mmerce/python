@@ -59,6 +59,7 @@ RESOURCE_TYPES = [
     'topicdistribution',
     'timeseries',
     'forecast',
+    'pca',
     'script',
     'execution',
     'library'
