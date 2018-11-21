@@ -60,6 +60,7 @@ RESOURCE_TYPES = [
     'timeseries',
     'forecast',
     'pca',
+    'projection',
     'script',
     'execution',
     'library'

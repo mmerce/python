@@ -47,6 +47,10 @@ def i_create_a_pca_from_dataset(step):
     world.pcas.append(resource['resource'])
 
 
+def i_create_a_pca(step):
+    i_create_a_pca_from_dataset(step)
+
+
 #@step(r'I update the PCA name to "(.*)"$')
 def i_update_pca_name(step, name):
     resource = world.api.update_pca(world.pca['resource'],
