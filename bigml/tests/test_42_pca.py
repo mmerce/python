@@ -23,6 +23,7 @@ from world import world, setup_module, teardown_module
 import create_source_steps as source_create
 import create_dataset_steps as dataset_create
 import create_pca_steps as pca_create
+import create_projection_steps as projection_create
 
 class TestPCA(object):
 
@@ -69,3 +70,37 @@ class TestPCA(object):
             pca_create.i_update_pca_name(self, example[5])
             pca_create.the_pca_is_finished_in_less_than(self, example[4])
             pca_create.i_check_pca_name(self, example[5])
+
+        print "\nEnd of tests in: %s\n-------------------\n" % __name__
+
+    def test_scenario2(self):
+        """
+            Scenario: Successfully creating a projection:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create a pca
+                And I wait until the pca is ready less than <time_3> secs
+                When I create a projection for "<data_input>"
+                Then the projection is "<projection>"
+
+                Examples:
+                | data                | time_1  | time_2 | time_3 | data_input    | projection  |
+                | ../data/iris.csv | 10      | 10     | 10     | {"petal width": 0.5} | '{"PC-0": 0.46547, "PC-1": 0.13724, "PC-2": -0.01666, "PC-3": 3.28995, "PC-4": 4.60383, "PC-5": 2.22108}' |
+        """
+        print self.test_scenario2.__doc__
+        examples = [
+            ['data/iris.csv', '30', '30', '30', '{"petal width": 0.5}', '{"PC-0": 0.46547, "PC-1": 0.13724, "PC-2": -0.01666, "PC-3": 3.28995, "PC-4": 4.60383, "PC-5": 2.22108}']]
+        for example in examples:
+            print "\nTesting with:\n", example
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(self, example[2])
+            pca_create.i_create_a_pca(self)
+            pca_create.the_pca_is_finished_in_less_than(self, example[3])
+            projection_create.i_create_a_projection(self, example[4])
+            projection_create.the_projection_is(self, example[5])
+
+        print "\nEnd of tests in: %s\n-------------------\n" % __name__

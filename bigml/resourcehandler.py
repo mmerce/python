@@ -325,6 +325,13 @@ def get_pca_id(pca):
     return get_resource(c.PCA_PATH, pca)
 
 
+def get_projection_id(projection):
+    """Returns a projection/id.
+
+    """
+    return get_resource(c.PROJECTION_PATH, projection)
+
+
 def get_script_id(script):
     """Returns a script/id.
 

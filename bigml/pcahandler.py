@@ -17,7 +17,7 @@
 
 """Base class for PCA' REST calls
 
-   https://bigml.com/developers/pcas
+   https://bigml.com/api/pcas
 
 """
 
