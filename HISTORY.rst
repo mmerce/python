@@ -7,6 +7,7 @@ History
 ~~~~~~~~~~~~~~~~~~~
 
 - Adding PCA REST call methods.
+- Adding local PCAs and Projections.
 
 4.19.9 (2018-10-24)
 ~~~~~~~~~~~~~~~~~~~
