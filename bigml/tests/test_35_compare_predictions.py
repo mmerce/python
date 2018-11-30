@@ -26,6 +26,9 @@ import create_model_steps as model_create
 import create_time_series_steps as time_series_create
 import create_forecast_steps as forecast_create
 import compare_forecasts_steps as forecast_compare
+import create_pca_steps as pca_create
+import create_projection_steps as projection_create
+import compare_predictions_steps as compare_predictions
 
 
 class TestComparePrediction(object):
@@ -211,3 +214,42 @@ class TestComparePrediction(object):
             forecast_create.the_forecast_is(self, example[5])
             forecast_compare.i_create_a_local_forecast(self, example[4])
             forecast_compare.the_local_forecast_is(self, example[5])
+
+
+    def test_scenario5(self):
+        """
+            Scenario: Successfully comparing projections for PCAs:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create a PCA with "<params>"
+                And I wait until the PCA is ready less than <time_3> secs
+                And I create a local PCA
+                When I create a projection for "<input_data>"
+                Then the projection is "<projection>"
+                And I create a local projection for "<data_input>"
+                Then the local projection is "<projection>"
+
+                Examples:
+                | data             | time_1  | time_2 | time_3 | input_data  | projection | params
+
+
+        """
+        examples = [
+            ['data/iris.csv', '30', '30', '120', '{}', '{}', '{}']]
+        show_doc(self.test_scenario5, examples)
+
+        for example in examples:
+            print "\nTesting with:\n", example
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(self, example[2])
+            pca_create.i_create_a_pca_with_params(self, example[6])
+            pca_create.the_pca_is_finished_in_less_than(self, example[3])
+            compare_predictions.create_local_pca(self)
+            projection_create.i_create_a_projection(self, example[4])
+            projection_create.the_projection_is(self, example[5])
+            compare_predictions.i_create_a_local_projection(self, example[4])
+            compare_predictions.the_local_projection_is(self, example[5])

@@ -32,6 +32,8 @@ from bigml.topicmodel import TopicModel
 from bigml.deepnet import Deepnet
 from bigml.supervised import SupervisedModel
 from bigml.fusion import Fusion
+from bigml.pca import PCA
+
 
 from create_prediction_steps import check_prediction
 
@@ -452,3 +454,18 @@ def i_create_a_local_logistic_prediction_op_kind( \
     data = json.loads(data)
     world.local_prediction = world.local_model.predict( \
         data, operating_kind=operating_kind)
+
+#@step(r'I create a local PCA')
+def i_create_a_local_pca(step):
+    world.local_pca = PCA(world.pca["resource"])
+
+
+#@step(r'I create a local projection for "(.*)"')
+def i_create_a_local_projection(step, data=None):
+    if data is None:
+        data = "{}"
+    data = json.loads(data)
+    for key, value in data.items():
+        if value == "":
+            del data[key]
+    world.local_projection = world.local_pca.projection(data)

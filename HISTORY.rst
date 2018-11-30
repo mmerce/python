@@ -8,6 +8,7 @@ History
 
 - Adding PCA REST call methods.
 - Adding local PCAs and Projections.
+- Fixing local Deepnet predictions for regressions without numpy.
 
 4.19.9 (2018-10-24)
 ~~~~~~~~~~~~~~~~~~~
