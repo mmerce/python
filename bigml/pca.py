@@ -41,16 +41,12 @@ pca.projection({"petal length": 3, "petal width": 1,
 """
 import logging
 import math
-import copy
-import json
 
-from functools import cmp_to_key
 
 from bigml.api import FINISHED
 from bigml.api import get_status
-from bigml.util import cast, PRECISION, NUMERIC
+from bigml.util import cast, NUMERIC
 from bigml.basemodel import get_resource_dict
-from bigml.model import sort_categories
 from bigml.modelfields import ModelFields
 from bigml.laminar.numpy_ops import dot
 
@@ -61,6 +57,24 @@ EXPANSION_ATTRIBUTES = {"categorical": "categories", "text": "tag_clouds",
 
 CATEGORICAL = "categorical"
 
+
+def get_terms_array(terms, unique_terms, field, field_id):
+    """ Returns an array that represents the frequency of terms as ordered
+    in the reference `terms` parameter.
+
+    """
+    input_terms = unique_terms.get(field_id, [])
+    terms_array = [0] * len(terms)
+    if field['optype'] == CATEGORICAL and \
+            field["summary"].get("missing_count", 0) > 0:
+        terms_array.append(int(field_id not in unique_terms))
+    try:
+        for term, frequency in input_terms:
+            index = terms.index(term)
+            terms_array[index] = frequency
+    except ValueError:
+        pass
+    return terms_array
 
 
 class PCA(ModelFields):
@@ -123,7 +137,7 @@ class PCA(ModelFields):
 
                 for field_id in self.categories:
                     field = self.fields[field_id]
-                    probabilities = [probability for category, probability in \
+                    probabilities = [probability for _, probability in \
                                      field["summary"]["categories"]]
                     if field["summary"].get("missing_count", 0) > 0:
                         probabilities.append(field["summary"]["missing_count"])
@@ -148,33 +162,14 @@ class PCA(ModelFields):
                             pca)
 
 
-    def _get_terms_array(self, terms, unique_terms, field, field_id):
-        """ Returns an array that represents the frequency of terms as ordered
-        in the reference `terms` tag cloud, items or categories list.
-
-        """
-        input_terms = unique_terms.get(field_id, [])
-        terms_array = [0] * len(terms)
-        if field['optype'] == CATEGORICAL and \
-                field["summary"].get("missing_count", 0) > 0:
-            terms_array.append(int(field_id not in unique_terms))
-        try:
-            for term, frequency in input_terms:
-                index = terms.index(term)
-                terms_array[index] = frequency
-        except ValueError:
-            pass
-        return terms_array
-
-
-    def projection(self, input_data, dimensions=None, variance_threshold=None):
+    def projection(self, input_data, max_components=None,
+                   variance_threshold=None, full=False):
         """Returns the projection of input data in the new components
 
         input_data: Input data to be projected
 
         """
 
-        unused_fields = []
         new_data = self.filter_input_data( \
             input_data,
             add_unused_fields=False)
@@ -193,12 +188,12 @@ class PCA(ModelFields):
         input_array, missings, input_mask = self.expand_input(new_data,
                                                               unique_terms)
         components = self.components[:]
-        if dimensions is not None:
-            components = components[0: dimensions]
+        if max_components is not None:
+            components = components[0: max_components]
         if variance_threshold is not None:
             for index, cumulative in enumerate(self.cumulative_variance):
                 if cumulative > variance_threshold:
-                    components[0: index + 1]
+                    components = components[0: index + 1]
 
         result = [value[0] for value in dot(components, [input_array])]
         # if non-categorical fields values are missing in input data
@@ -208,6 +203,9 @@ class PCA(ModelFields):
             for index, value in enumerate(result):
                 result[index] = value / missing_sums[index] \
                     if missing_sums[index] > 0 else value
+        if full:
+            result = dict(zip(["PCA%s" % index \
+                for index in range(1, len(components) + 1)], result))
         return result
 
 
@@ -230,7 +228,6 @@ class PCA(ModelFields):
         """
         if field['optype'] == CATEGORICAL and index is not None:
             mean = self.categories_probabilities[field_id][index]
-            categorical_number = len(self.categories)
             stdev = self.famd_j * math.sqrt(mean * self.famd_j)
             return mean, stdev
         elif field['optype'] == NUMERIC:
@@ -260,14 +257,14 @@ class PCA(ModelFields):
         for index, field_id in enumerate(self.input_fields):
             field = self.fields[field_id]
             optype = field["optype"]
-            if (optype == NUMERIC):
+            if optype == NUMERIC:
                 input_mask.append(int(field_id in input_data))
                 if field_id in input_data:
                     value = input_data.get(field_id, 0)
                     if self.standardized:
                         mean, stdev = self._get_mean_stdev(field)
                         value -= mean
-                        if (stdev > 0):
+                        if stdev > 0:
                             value /= stdev
                 else:
                     missings = True
@@ -286,7 +283,7 @@ class PCA(ModelFields):
                             new_inputs.append(1)
                             input_mask.append(1)
                 else:
-                    new_inputs = self._get_terms_array( \
+                    new_inputs = get_terms_array( \
                         terms, unique_terms, field, field_id)
                     input_mask.extend( \
                         [1] * len(new_inputs))
