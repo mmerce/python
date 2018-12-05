@@ -237,7 +237,14 @@ class TestComparePrediction(object):
 
         """
         examples = [
-            ['data/iris.csv', '30', '30', '120', '{}', '{}', '{}']]
+            ['data/iris.csv', '30', '30', '120', '{}',
+             '{"PC2": 0, "PC3": 1e-05, "PC1": 2e-05, "PC6": 0, "PC4": 0, "PC5": -2e-05}', '{}'],
+            ['data/iris.csv', '30', '30', '120', '{"petal length": 1}',
+             '{"PC2": 0.10109, "PC3": 0.16123, "PC1": 3.07314, "PC6": -0.1652, "PC4": 0.28663, "PC5": -0.16477}', '{}'],
+            ['data/iris.csv', '30', '30', '120', '{"species": "Iris-versicolor"}',
+             '{"PC2": 2.15914, "PC3": -1.54734, "PC1": -1.20336, "PC6": -0.08233, "PC4": -0.96098, "PC5": 0.07091}', '{}'],
+            ['data/iris.csv', '30', '30', '120', '{"petal length": 1, "sepal length": 0, "petal width": 0, "sepal width": 0, "species": "Iris-versicolor"}',
+             '{"PC2": 8.33399, "PC3": 5.01889, "PC1": 5.47656, "PC6": 0.02629, "PC4": -0.76555, "PC5": 0.09413}', '{}']]
         show_doc(self.test_scenario5, examples)
 
         for example in examples:

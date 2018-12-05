@@ -48,7 +48,11 @@ from bigml.api import get_status
 from bigml.util import cast, NUMERIC
 from bigml.basemodel import get_resource_dict
 from bigml.modelfields import ModelFields
-from bigml.laminar.numpy_ops import dot
+
+try:
+    from bigml.laminar.numpy_ops import dot
+except ImportError:
+    from bigml.laminar.math_ops import dot
 
 LOGGER = logging.getLogger('BigML')
 
@@ -204,7 +208,7 @@ class PCA(ModelFields):
                 result[index] = value / missing_sums[index] \
                     if missing_sums[index] > 0 else value
         if full:
-            result = dict(zip(["PCA%s" % index \
+            result = dict(zip(["PC%s" % index \
                 for index in range(1, len(components) + 1)], result))
         return result
 

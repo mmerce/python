@@ -456,7 +456,7 @@ def i_create_a_local_logistic_prediction_op_kind( \
         data, operating_kind=operating_kind)
 
 #@step(r'I create a local PCA')
-def i_create_a_local_pca(step):
+def create_local_pca(step):
     world.local_pca = PCA(world.pca["resource"])
 
 
@@ -468,4 +468,15 @@ def i_create_a_local_projection(step, data=None):
     for key, value in data.items():
         if value == "":
             del data[key]
-    world.local_projection = world.local_pca.projection(data)
+    world.local_projection = world.local_pca.projection(data, full=True)
+    print "***", world.local_projection
+    for name, value in world.local_projection.items():
+        world.local_projection[name] = round(value, 5)
+
+
+def the_local_projection_is(step, projection):
+    if projection is None:
+        projection = "{}"
+    projection = json.loads(projection)
+    for name, value in projection.items():
+        eq_(world.local_projection[name], projection[name])
