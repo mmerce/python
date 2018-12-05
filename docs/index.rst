@@ -4531,7 +4531,7 @@ PCA to compute the projection that corresponds to each input data instance:
 
 .. code-block:: python
 
-    batch_pca = api.create_batch_pca( \
+    batch_projection = api.create_batch_projection( \
         pca, dataset, {
         "name": "my batch pca", "all_fields": True,
         "header": True})
