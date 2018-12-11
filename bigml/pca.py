@@ -200,6 +200,7 @@ class PCA(ModelFields):
                     components = components[0: index + 1]
 
         result = [value[0] for value in dot(components, [input_array])]
+
         # if non-categorical fields values are missing in input data
         # there's an additional normalization
         if missings:
@@ -276,7 +277,12 @@ class PCA(ModelFields):
                 input_array.append(value)
             else:
                 terms = getattr(self, EXPANSION_ATTRIBUTES[optype])[field_id]
-                if field_id not in unique_terms:
+                if field_id in unique_terms:
+                    new_inputs = get_terms_array( \
+                        terms, unique_terms, field, field_id)
+                    input_mask.extend( \
+                        [1] * len(new_inputs))
+                else:
                     new_inputs = [0] * len(terms)
                     if optype != CATEGORICAL:
                         missings = True
@@ -286,11 +292,6 @@ class PCA(ModelFields):
                         if field["summary"]["missing_count"] > 0:
                             new_inputs.append(1)
                             input_mask.append(1)
-                else:
-                    new_inputs = get_terms_array( \
-                        terms, unique_terms, field, field_id)
-                    input_mask.extend( \
-                        [1] * len(new_inputs))
 
                 if self.standardized:
                     for index, frequency in enumerate(new_inputs):

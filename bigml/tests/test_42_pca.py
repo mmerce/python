@@ -92,7 +92,7 @@ class TestPCA(object):
         """
         print self.test_scenario2.__doc__
         examples = [
-            ['data/iris.csv', '30', '30', '30', '{"petal width": 0.5}', '{"PC-0": 0.46547, "PC-1": 0.13724, "PC-2": -0.01666, "PC-3": 3.28995, "PC-4": 4.60383, "PC-5": 2.22108}']]
+            ['data/iris.csv', '30', '30', '30', '{"petal width": 0.5}', '{"PC1": 0.46547, "PC2": 0.13724, "PC3": -0.01666, "PC4": 3.28995, "PC5": 4.60383, "PC6": 2.22108}']]
         for example in examples:
             print "\nTesting with:\n", example
             source_create.i_upload_a_file(self, example[0])

@@ -260,3 +260,43 @@ class TestComparePrediction(object):
             projection_create.the_projection_is(self, example[5])
             compare_predictions.i_create_a_local_projection(self, example[4])
             compare_predictions.the_local_projection_is(self, example[5])
+
+
+
+    def test_scenario6(self):
+        """
+            Scenario: Successfully comparing topic distributions:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I update the source with params "<options>"
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create a topic model
+                And I wait until the topic model is ready less than <time_3> secs
+                And I create a local topic model
+                When I create a topic distribution for "<data_input>"
+                Then the topic distribution is "<topic_distribution>"
+                And I create a local topic distribution for "<data_input>"
+                Then the local topic distribution is "<topic_distribution>"
+
+                Examples headers:
+                | data             | time_1  | time_2 | time_3 | options | data_input                            | topic distribution  |
+
+        """
+        examples = [
+            ['data/spam.csv', '30', '30', '30', '{"fields": {"000001": {"optype": "text", "term_analysis": {"token_mode": "all"}}}}', '{"Message": "Mobile call"}', '{}', '{}']]
+        show_doc(self.test_scenario6, examples)
+        for example in examples:
+            print "\nTesting with:\n", example
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            source_create.i_update_source_with(self, example[4])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(self, example[2])
+            pca_create.i_create_a_pca_with_params(self, example[6])
+            pca_create.the_pca_is_finished_in_less_than(self, example[3])
+            compare_predictions.create_local_pca(self)
+            projection_create.i_create_a_projection(self, example[5])
+            projection_create.the_projection_is(self, example[7])
+            compare_predictions.i_create_a_local_projection(self, example[5])
+            compare_predictions.the_local_projection_is(self, example[7])
