@@ -185,6 +185,7 @@ class PCA(ModelFields):
         # terms and frequencies
         unique_terms = self.get_unique_terms(new_data)
 
+
         # Creates an input vector with the values for all expanded fields.
         # The input mask marks the non-missing or categorical fields
         # The `missings` variable is a boolean indicating whether there's

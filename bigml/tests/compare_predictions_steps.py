@@ -469,7 +469,6 @@ def i_create_a_local_projection(step, data=None):
         if value == "":
             del data[key]
     world.local_projection = world.local_pca.projection(data, full=True)
-    print "***", world.local_projection
     for name, value in world.local_projection.items():
         world.local_projection[name] = round(value, 5)
 
