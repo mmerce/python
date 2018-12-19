@@ -44,7 +44,7 @@ def the_projection_is(step, projection):
         projection = "{}"
     projection = json.loads(projection)
     for name, value in projection.items():
-        eq_(world.projection['projection']['result'], projection,
+        eq_(world.projection['projection']['result'][name], projection[name],
             "remote: %s, %s - expected: %s" % ( \
                 name, world.projection['projection']['result'][name],
                 projection[name]))
