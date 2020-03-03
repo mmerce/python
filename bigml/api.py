@@ -75,6 +75,7 @@ from bigml.batchprojectionhandler import BatchProjectionHandler
 from bigml.scripthandler import ScriptHandler
 from bigml.executionhandler import ExecutionHandler
 from bigml.libraryhandler import LibraryHandler
+from bigml.externalconnectorhandler import ExternalConnectorHandler
 from bigml.constants import STORAGE
 
 
@@ -111,6 +112,7 @@ from bigml.constants import (
     BATCH_PROJECTION_PATH, BATCH_PROJECTION_RE,
     LINEAR_REGRESSION_PATH, LINEAR_REGRESSION_RE, SCRIPT_PATH, SCRIPT_RE,
     EXECUTION_PATH, EXECUTION_RE, LIBRARY_PATH, LIBRARY_RE, STATUS_PATH,
+    EXTERNAL_CONNECTOR_PATH, EXTERNAL_CONNECTOR_RE,
     IRREGULAR_PLURALS)
 
 from bigml.resourcehandler import (
@@ -126,7 +128,7 @@ from bigml.resourcehandler import (
     get_time_series_id, get_forecast_id, get_deepnet_id, get_optiml_id,
     get_fusion_id, get_pca_id, get_projection_id, get_batch_projection_id,
     get_configuration_id, get_linear_regression_id,
-    get_script_id, get_execution_id, get_library_id)
+    get_script_id, get_execution_id, get_library_id, get_external_connector_id)
 
 
 # Map status codes to labels
@@ -179,7 +181,8 @@ ID_GETTERS = {
     LINEAR_REGRESSION_PATH: get_linear_regression_id,
     SCRIPT_PATH: get_script_id,
     LIBRARY_PATH: get_library_id,
-    EXECUTION_PATH: get_execution_id
+    EXECUTION_PATH: get_execution_id,
+    EXTERNAL_CONNECTOR_PATH: get_external_connector_id
 }
 
 
@@ -191,7 +194,8 @@ def count(listing):
         return listing['meta']['query_total']
 
 
-class BigML(LinearRegressionHandler, BatchProjectionHandler,
+class BigML(ExternalConnectorHandler,
+            LinearRegressionHandler, BatchProjectionHandler,
             ProjectionHandler, PCAHandler,
             ConfigurationHandler, FusionHandler,
             OptimlHandler,
@@ -298,6 +302,7 @@ class BigML(LinearRegressionHandler, BatchProjectionHandler,
         ProjectionHandler.__init__(self)
         BatchProjectionHandler.__init__(self)
         LinearRegressionHandler.__init__(self)
+        ExternalConnectorHandler.__init__(self)
         self.status_url = "%s%s" % (self.url, STATUS_PATH)
 
 
