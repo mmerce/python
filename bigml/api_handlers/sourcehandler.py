@@ -127,7 +127,7 @@ class SourceHandler(ResourceHandler):
             create_args.update(args)
 
         for key, value in list(create_args.items()):
-            if value is not None and isinstance(value, [list, dict]):
+            if value is not None and isinstance(value, (list, dict)):
                 create_args[key] = json.dumps(value)
             elif value is not None and isinstance(value, numbers.Number):
                 # the multipart encoder only accepts strings and files
