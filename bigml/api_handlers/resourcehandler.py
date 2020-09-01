@@ -31,8 +31,8 @@ from bigml.util import get_exponential_wait, get_status, is_status_final, \
 from bigml.util import DFT_STORAGE
 from bigml.bigmlconnection import HTTP_OK, HTTP_ACCEPTED, HTTP_CREATED, LOGGER
 from bigml.bigmlconnection import BigMLConnection
-from bigml.constants import WAITING, QUEUED, STARTED, IN_PROGRESS, SUMMARIZED,
-    FINISHED, UPLOADING, FAULTY, UNKNOWN, RUNNABLE
+from bigml.constants import WAITING, QUEUED, STARTED, IN_PROGRESS, \
+    SUMMARIZED, FINISHED, UPLOADING, FAULTY, UNKNOWN, RUNNABLE
 
 # Minimum query string to get model fields
 TINY_RESOURCE = "full=false"
