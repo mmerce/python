@@ -304,6 +304,12 @@ def i_check_model_stored(step, filename, pmml):
             (world.model["resource"].index("/") + 1):]
         assert(content.index(model_id) > -1)
 
+#@step(r'I read model from file "(.*)"$')
+def i_read_model_file(step, filename):
+    with open(res_filename(filename)) as file_handler:
+        content = file_handler.read()
+        world.model = json.loads(content)
+
 #@step(r'I create an optiml$')
 def i_create_an_optiml(step):
     dataset = world.dataset.get('resource')

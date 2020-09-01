@@ -46,9 +46,10 @@ except ImportError:
 
 
 from bigml.api import FINISHED
-from bigml.api import get_status, get_api_connection
+from bigml.api import get_status, get_api_connection, get_topic_model_id
 from bigml.basemodel import get_resource_dict
 from bigml.modelfields import ModelFields
+from bigml.util import use_cache, load
 
 
 LOGGER = logging.getLogger('BigML')
@@ -84,7 +85,12 @@ class TopicModel(ModelFields):
 
     """
 
-    def __init__(self, topic_model, api=None):
+    def __init__(self, topic_model, api=None, cache_get=None):
+
+        if use_cache(cache_get):
+            # using a cache to store the model attributes
+            self.__dict__ = load(get_topic_model_id(topic_model), cache_get)
+            return
 
         self.resource_id = None
         self.stemmer = None
@@ -188,8 +194,7 @@ class TopicModel(ModelFields):
         """
         if not self.stemmer:
             return term
-        else:
-            return self.stemmer.stemWord(term)
+        return self.stemmer.stemWord(term)
 
     def append_bigram(self, out_terms, first, second):
         """Takes two terms and appends the index of their concatenation to the
@@ -263,7 +268,7 @@ class TopicModel(ModelFields):
 
                 last_term = term_out
 
-                if char == " " or char == "\n":
+                if char in [" ", "\n"]:
                     space_was_sep = True
 
                 tstem = self.stem(term_out)

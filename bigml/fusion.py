@@ -50,7 +50,7 @@ from bigml.model import parse_operating_point, sort_categories
 from bigml.model import LAST_PREDICTION
 from bigml.basemodel import get_resource_dict, retrieve_resource
 from bigml.multivotelist import MultiVoteList
-from bigml.util import cast, check_no_missing_numerics
+from bigml.util import cast, check_no_missing_numerics, use_cache, load
 from bigml.supervised import SupervisedModel
 from bigml.modelfields import ModelFields
 
@@ -127,7 +127,12 @@ class Fusion(ModelFields):
                   cache storage.
     """
 
-    def __init__(self, fusion, api=None, max_models=None):
+    def __init__(self, fusion, api=None, max_models=None, cache_get=None):
+
+        if use_cache(cache_get):
+            # using a cache to store the model attributes
+            self.__dict__ = load(get_fusion_id(fusion), cache_get)
+            return
 
         self.resource_id = None
         self.models_ids = None
@@ -168,9 +173,10 @@ class Fusion(ModelFields):
         if self.api.storage is not None:
             for model_id in self.model_ids:
                 if get_resource_type(model_id) == "fusion":
-                    Fusion(model_id, api=self.api)
+                    Fusion(model_id, api=self.api, cache_get=cache_get)
                 else:
-                    SupervisedModel(model_id, api=self.api)
+                    SupervisedModel(model_id, api=self.api,
+                                    cache_get=cache_get)
 
         if max_models is None:
             self.models_splits = [self.model_ids]
@@ -223,8 +229,7 @@ class Fusion(ModelFields):
                         raise ValueError("The JSON file does not seem"
                                          " to contain a valid BigML fusion"
                                          " representation.")
-                    else:
-                        self.api = BigML(storage=path)
+                    self.api = BigML(storage=path)
             except IOError:
                 # if it is not a path, it can be an fusion id
                 self.resource_id = get_fusion_id(fusion)
@@ -234,9 +239,8 @@ class Fusion(ModelFields):
                             self.api.error_message(fusion,
                                                    resource_type='fusion',
                                                    method='get'))
-                    else:
-                        raise IOError("Failed to open the expected JSON file"
-                                      " at %s" % fusion)
+                    raise IOError("Failed to open the expected JSON file"
+                                  " at %s" % fusion)
             except ValueError:
                 raise ValueError("Failed to interpret %s."
                                  " JSON file expected.")
@@ -321,8 +325,7 @@ class Fusion(ModelFields):
         if self.regression:
             total_weight = len(votes.predictions) if self.weights is None \
                 else sum(self.weights)
-            prediction = sum([prediction for prediction in \
-                votes.predictions]) / float(total_weight)
+            prediction = sum(votes.predictions) / float(total_weight)
             if compact:
                 output = [prediction]
             else:
@@ -365,13 +368,16 @@ class Fusion(ModelFields):
                          operating point can be defined in terms of:
                          - the positive_class, the class that is important to
                            predict accurately
-                         - the probability_threshold,
-                           the probability that is stablished
+                         - the threshold,
+                           the value that is stablished
                            as minimum for the positive_class to be predicted.
+                         - the kind of measure used to set a threshold:
+                           probability or confidence (if available)
                          The operating_point is then defined as a map with
                          two attributes, e.g.:
                            {"positive_class": "Iris-setosa",
-                            "probability_threshold": 0.5}
+                            "threshold": 0.5,
+                            "kind": "probability"}
         full: Boolean that controls whether to include the prediction's
               attributes. By default, only the prediction is produced. If set
               to True, the rest of available information is added in a

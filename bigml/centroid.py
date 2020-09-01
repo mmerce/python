@@ -51,7 +51,7 @@ def cosine_distance2(terms, centroid_terms, scale):
     return similarity_distance ** 2
 
 
-class Centroid(object):
+class Centroid():
     """A Centroid.
 
     """

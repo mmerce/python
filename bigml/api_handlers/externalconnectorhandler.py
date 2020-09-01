@@ -28,8 +28,8 @@ except ImportError:
 
 from bigml.api_handlers.resourcehandler import ResourceHandler
 from bigml.api_handlers.resourcehandler import check_resource_type, \
-    get_external_connector_id, get_resource_type, check_resource
-from bigml.constants import EXTERNAL_CONNECTOR_PATH, TINY_RESOURCE, \
+    get_external_connector_id
+from bigml.constants import EXTERNAL_CONNECTOR_PATH, \
     EXTERNAL_CONNECTION_ATTRS
 
 
@@ -90,7 +90,8 @@ class ExternalConnectorHandler(ResourceHandler):
         create_args.update({"connection": connection_info})
         create_args.update({"source": source})
         body = json.dumps(create_args)
-        return self._create(self.external_connector_url, body)
+        return self._create(self.external_connector_url, body,
+                            wait_time=wait_time, retries=retries)
 
     def get_external_connector(self, external_connector, query_string=''):
         """Retrieves an external connector.
@@ -126,7 +127,7 @@ class ExternalConnectorHandler(ResourceHandler):
         if external_connector_id:
             body = json.dumps(changes)
             return self._update("%s%s" % (self.url, external_connector_id),
-                                          body)
+                                body)
 
     def delete_external_connector(self, external_connector, query_string=''):
         """Deletes an external connector.

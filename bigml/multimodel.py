@@ -69,8 +69,7 @@ def read_votes(votes_files, to_prediction, data_locale=None):
        used in numeric formatting.
     """
     votes = []
-    for order in range(0, len(votes_files)):
-        votes_file = votes_files[order]
+    for order, votes_file in enumerate(votes_files):
         index = 0
         with UnicodeReader(votes_file) as rdr:
             for row in rdr:
@@ -93,7 +92,7 @@ def read_votes(votes_files, to_prediction, data_locale=None):
     return votes
 
 
-class MultiModel(object):
+class MultiModel():
     """A multiple local model.
 
     Uses a number of BigML remote models to build a local version that can be

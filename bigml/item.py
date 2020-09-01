@@ -20,9 +20,9 @@
 """
 
 from bigml.associationrule import SUPPORTED_LANGUAGES
-from bigml.predicate import term_matches, item_matches
+from bigml.predicate_utils.utils import term_matches, item_matches
 
-class Item(object):
+class Item():
     """ Object encapsulating an Association resource item as described in
     https://bigml.com/developers/associations
 

@@ -46,30 +46,22 @@ import os
 from functools import cmp_to_key
 
 from bigml.api import get_ensemble_id, get_model_id, get_api_connection
-from bigml.model import Model, print_distribution, \
-    parse_operating_point, sort_categories
+from bigml.model import Model, parse_operating_point, sort_categories
+from bigml.generators.model import print_distribution
 from bigml.basemodel import retrieve_resource, ONLY_MODEL, EXCLUDE_FIELDS
 from bigml.model import LAST_PREDICTION
 from bigml.multivote import MultiVote
 from bigml.multivote import PLURALITY_CODE, PROBABILITY_CODE, CONFIDENCE_CODE
 from bigml.multimodel import MultiModel
-from bigml.basemodel import BaseModel, print_importance
-from bigml.modelfields import ModelFields, lacks_info
+from bigml.basemodel import BaseModel, print_importance, check_local_but_fields
+from bigml.modelfields import ModelFields
 from bigml.multivotelist import MultiVoteList
-from bigml.util import cast
+from bigml.util import cast, use_cache, load
 
 
 BOOSTING = 1
 LOGGER = logging.getLogger('BigML')
 OPERATING_POINT_KINDS = ["probability", "confidence", "votes"]
-
-
-def use_cache(cache_get):
-    """Checks whether the user has provided a cache get function to retrieve
-       local models.
-
-    """
-    return cache_get is not None and hasattr(cache_get, '__call__')
 
 
 def boosted_list_error(boosting):
@@ -108,6 +100,10 @@ class Ensemble(ModelFields):
                  max_models=None,
                  cache_get=None):
 
+        if use_cache(cache_get):
+            # using a cache to store the model attributes
+            self.__dict__ = load(get_ensemble_id(ensemble), cache_get)
+            return
 
         self.resource_id = None
         self.objective_id = None
@@ -143,11 +139,11 @@ class Ensemble(ModelFields):
         else:
             ensemble = self.get_ensemble_resource(ensemble)
             self.resource_id = get_ensemble_id(ensemble)
-
-            if lacks_info(ensemble, inner_key="ensemble"):
+            if not check_local_but_fields(ensemble, inner_key="ensemble"):
                 # avoid checking fields because of old ensembles
                 ensemble = retrieve_resource(self.api, self.resource_id,
                                              no_check_fields=True)
+
             if ensemble['object'].get('type') == BOOSTING:
                 self.boosting = ensemble['object'].get('boosting')
             models = ensemble['object']['models']
@@ -174,7 +170,8 @@ class Ensemble(ModelFields):
                 if use_cache(cache_get):
                     # retrieve the models from a cache get function
                     try:
-                        models = [cache_get(model_id) for model_id
+                        models = [Model(model_id, cache_get=cache_get)
+                                  for model_id
                                   in self.models_splits[0]]
                         self.cache_get = cache_get
                     except Exception as exc:
@@ -197,7 +194,8 @@ class Ensemble(ModelFields):
                 if use_cache(cache_get):
                     # retrieve the models from a cache get function
                     try:
-                        model = cache_get(self.models_splits[0][0])
+                        model = Model(self.models_splits[0][0],
+                                      cache_get=cache_get)
                         self.cache_get = cache_get
                     except Exception as exc:
                         raise Exception('Error while calling the user-given'
@@ -309,8 +307,7 @@ class Ensemble(ModelFields):
                         raise ValueError("The JSON file does not seem"
                                          " to contain a valid BigML ensemble"
                                          " representation.")
-                    else:
-                        self.api.storage = path
+                    self.api.storage = path
             except IOError:
                 # if it is not a path, it can be an ensemble id
                 self.resource_id = get_ensemble_id(ensemble)
@@ -320,9 +317,8 @@ class Ensemble(ModelFields):
                             self.api.error_message(ensemble,
                                                    resource_type='ensemble',
                                                    method='get'))
-                    else:
-                        raise IOError("Failed to open the expected JSON file"
-                                      " at %s" % ensemble)
+                    raise IOError("Failed to open the expected JSON file"
+                                  " at %s" % ensemble)
             except ValueError:
                 raise ValueError("Failed to interpret %s."
                                  " JSON file expected.")
@@ -720,8 +716,7 @@ class Ensemble(ModelFields):
                 operating_point=operating_point)
             if full:
                 return prediction
-            else:
-                return prediction["prediction"]
+            return prediction["prediction"]
 
         if operating_kind:
             if self.regression:
@@ -732,12 +727,11 @@ class Ensemble(ModelFields):
                     input_data, method=method,
                     options=options, missing_strategy=missing_strategy,
                     operating_point=None, operating_kind=None, full=full)
-            else:
-                prediction = self.predict_operating_kind( \
-                    input_data,
-                    missing_strategy=missing_strategy,
-                    operating_kind=operating_kind)
-                return prediction
+            prediction = self.predict_operating_kind( \
+                input_data,
+                missing_strategy=missing_strategy,
+                operating_kind=operating_kind)
+            return prediction
 
         if len(self.models_splits) > 1:
             # If there's more than one chunk of models, they must be

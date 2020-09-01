@@ -41,13 +41,13 @@ import csv
 
 
 from bigml.api import FINISHED
-from bigml.api import get_status, get_api_connection
+from bigml.api import get_status, get_api_connection, get_association_id
 from bigml.basemodel import get_resource_dict
 from bigml.modelfields import ModelFields
 from bigml.associationrule import AssociationRule
 from bigml.item import Item
 from bigml.io import UnicodeWriter
-
+from bigml.util import use_cache, load
 
 LOGGER = logging.getLogger('BigML')
 
@@ -106,7 +106,13 @@ class Association(ModelFields):
 
     """
 
-    def __init__(self, association, api=None):
+    def __init__(self, association, api=None, cache_get=None):
+
+
+        if use_cache(cache_get):
+            # using a cache to store the association attributes
+            self.__dict__ = load(get_association_id(association), cache_get)
+            return
 
         self.resource_id = None
         self.complement = None

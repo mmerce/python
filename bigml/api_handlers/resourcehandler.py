@@ -31,20 +31,8 @@ from bigml.util import get_exponential_wait, get_status, is_status_final, \
 from bigml.util import DFT_STORAGE
 from bigml.bigmlconnection import HTTP_OK, HTTP_ACCEPTED, HTTP_CREATED, LOGGER
 from bigml.bigmlconnection import BigMLConnection
-
-
-# Resource status codes
-WAITING = 0
-QUEUED = 1
-STARTED = 2
-IN_PROGRESS = 3
-SUMMARIZED = 4
-FINISHED = 5
-UPLOADING = 6
-FAULTY = -1
-UNKNOWN = -2
-RUNNABLE = -3
-
+from bigml.constants import WAITING, QUEUED, STARTED, IN_PROGRESS, SUMMARIZED,
+    FINISHED, UPLOADING, FAULTY, UNKNOWN, RUNNABLE
 
 # Minimum query string to get model fields
 TINY_RESOURCE = "full=false"
@@ -383,12 +371,11 @@ def get_resource_id(resource):
     """
     if isinstance(resource, dict) and 'resource' in resource:
         return resource['resource']
-    elif isinstance(resource, str) and any(
+    if isinstance(resource, str) and any(
             resource_re.match(resource) for _, resource_re
             in list(c.RESOURCE_RE.items())):
         return resource
-    else:
-        return
+    return
 
 
 def exception_on_error(resource):
@@ -399,10 +386,10 @@ def exception_on_error(resource):
         raise Exception(resource.get('error', \
             {}).get('status', {}).get('message'))
     if resource.get('object', resource).get('status', {}).get('error') \
-        is not None:
-            status = resource.get('object', resource).get( \
-                'status', {})
-            raise Exception(status.get('cause', status).get('message'))
+            is not None:
+        status = resource.get('object', resource).get( \
+            'status', {})
+        raise Exception(status.get('cause', status).get('message'))
 
 
 def check_resource(resource, get_method=None, query_string='', wait_time=1,
@@ -420,11 +407,11 @@ def check_resource(resource, get_method=None, query_string='', wait_time=1,
 
     """
     resource_id = get_resource_id(resource)
-    if isinstance(resource, dict) and resource.get("resource") is None:
+    if isinstance(resource, dict) and resource.get("resource") is not None:
         return resource
     if resource_id is None:
         raise ValueError("Failed to extract a valid resource id to check.")
-    if wait_time <=0:
+    if wait_time <= 0:
         raise ValueError("The time to wait needs to be positive.")
     debug = debug or (api is not None and (api.debug or api.short_debug))
     if debug:
@@ -458,7 +445,7 @@ def check_resource(resource, get_method=None, query_string='', wait_time=1,
             if raise_on_error:
                 exception_on_error(resource)
             return resource
-        elif code == c.FAULTY:
+        if code == c.FAULTY:
             if raise_on_error:
                 exception_on_error(resource)
             return resource
@@ -506,14 +493,6 @@ class ResourceHandler(BigMLConnection):
        be instantiated independently.
 
     """
-
-    def __init__(self):
-        """Initializes the ResourceHandler. This class is intended to be
-           used purely as a mixin on BigMLConnection and must not be
-           instantiated independently.
-
-        """
-        pass
 
     def get_resource(self, resource, **kwargs):
         """Retrieves a remote resource.
@@ -573,8 +552,7 @@ class ResourceHandler(BigMLConnection):
                                    max_requests, raise_on_error, retries,
                                    error_retries - 1, max_elapsed_estimate,
                                    debug)
-                else:
-                    return True
+                return True
             except Exception as err:
                 if error_retries is not None and error_retries > 0:
                     return self.ok(resource, query_string, wait_time,
@@ -582,14 +560,13 @@ class ResourceHandler(BigMLConnection):
                                    error_retries - 1,
                                    max_elapsed_estimate,
                                    debug)
-                else:
-                    LOGGER.error("The resource info for %s couldn't"
-                                 " be retrieved" % resource["resource"])
-                    if raise_on_error:
-                        exception_on_error({"resource": resource["resource"],
-                                            "error": err})
+                LOGGER.error("The resource info for %s couldn't"
+                             " be retrieved", resource["resource"])
+                if raise_on_error:
+                    exception_on_error({"resource": resource["resource"],
+                                        "error": err})
         else:
-            LOGGER.error("The resource %s couldn't be retrieved: %s" %
+            LOGGER.error("The resource %s couldn't be retrieved: %s",
                          (resource["location"], resource['error']))
             if raise_on_error:
                 exception_on_error(resource)
@@ -647,7 +624,7 @@ class ResourceHandler(BigMLConnection):
         return create_args
 
     def _set_create_from_models_args(self, models, types, args=None,
-                                     wait_time=3, retries=10, key=None):
+                                     wait_time=3, retries=10):
         """Builds args dictionary for the create call from a list of
         models. The first argument needs to be a list of:
             - the model IDs
@@ -817,9 +794,8 @@ class ResourceHandler(BigMLConnection):
                     resource_info).toprettyxml()
                 return save(resource_info, filename)
             return save_json(resource_info, filename)
-        else:
-            raise ValueError("First agument is expected to be a valid"
-                             " resource ID or structure.")
+        raise ValueError("First agument is expected to be a valid"
+                         " resource ID or structure.")
 
     def export_last(self, tags, filename=None,
                     resource_type="model", project=None,
@@ -864,9 +840,7 @@ class ResourceHandler(BigMLConnection):
                                 os.path.dirname(filename),
                                 component_id.replace("/", "_")))
                 return save_json(resource_info, filename)
-            else:
-                raise ValueError("No %s found with tags %s." % (resource_type,
-                                                                tags))
-        else:
-            raise ValueError("First agument is expected to be a non-empty"
-                             " tag.")
+            raise ValueError("No %s found with tags %s." % (resource_type,
+                                                            tags))
+        raise ValueError("First agument is expected to be a non-empty"
+                         " tag.")

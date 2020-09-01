@@ -47,11 +47,11 @@ import codecs
 
 
 from bigml.api import FINISHED
-from bigml.api import get_status, BigML, get_api_connection
-from bigml.util import cast, utf8, NUMERIC
+from bigml.api import get_status, get_api_connection, get_cluster_id
+from bigml.util import cast, utf8, NUMERIC, use_cache, load
 from bigml.centroid import Centroid
 from bigml.basemodel import get_resource_dict
-from bigml.model import print_distribution
+from bigml.generators.model import print_distribution
 from bigml.predicate import TM_TOKENS, TM_FULL_TERM
 from bigml.modelfields import ModelFields
 from bigml.io import UnicodeWriter
@@ -112,6 +112,31 @@ def get_unique_terms(terms, term_forms, tag_cloud):
     return list(terms_set)
 
 
+def cluster_global_distance():
+    """Used to populate the intercentroid distances columns in the CSV
+       report. For now we don't want to compute real distance and just
+       display "N/A"
+    """
+    intercentroid_distance = []
+    for measure, _ in INTERCENTROID_MEASURES:
+        intercentroid_distance.append([measure, 'N/A'])
+    return intercentroid_distance
+
+
+def centroid_features(centroid, field_ids, encode=True):
+    """Returns features defining the centroid according to the list
+       of common field ids that define the centroids.
+
+    """
+    features = []
+    for field_id in field_ids:
+        value = centroid.center[field_id]
+        if isinstance(value, str) and encode:
+            value = utf8(value)
+        features.append(value)
+    return features
+
+
 class Cluster(ModelFields):
     """ A lightweight wrapper around a cluster model.
 
@@ -120,7 +145,12 @@ class Cluster(ModelFields):
 
     """
 
-    def __init__(self, cluster, api=None):
+    def __init__(self, cluster, api=None, cache_get=None):
+
+        if use_cache(cache_get):
+            # using a cache to store the cluster attributes
+            self.__dict__ = load(get_cluster_id(cluster), cache_get)
+            return
 
         self.resource_id = None
         self.centroids = None
@@ -341,16 +371,6 @@ class Cluster(ModelFields):
             intercentroid_distance.append([measure, result])
         return intercentroid_distance
 
-    def cluster_global_distance(self):
-        """Used to populate the intercentroid distances columns in the CSV
-           report. For now we don't want to compute real distance and jsut
-           display "N/A"
-        """
-        intercentroid_distance = []
-        for measure, _ in INTERCENTROID_MEASURES:
-            intercentroid_distance.append([measure, 'N/A'])
-        return intercentroid_distance
-
     def _prepare_for_distance(self, input_data):
         """Prepares the fields to be able to compute the distance2
 
@@ -482,19 +502,6 @@ class Cluster(ModelFields):
                 "centroids": sorted(close_centroids,
                                     key=lambda x: x["distance"])}
 
-    def centroid_features(self, centroid, field_ids, encode=True):
-        """Returns features defining the centroid according to the list
-           of common field ids that define the centroids.
-
-        """
-        features = []
-        for field_id in field_ids:
-            value = centroid.center[field_id]
-            if isinstance(value, str) and encode:
-                value = value.encode('utf-8')
-            features.append(value)
-        return features
-
     def get_data_distribution(self):
         """Returns training data distribution
 
@@ -552,8 +559,8 @@ class Cluster(ModelFields):
         centroids_list = sorted(self.centroids, key=lambda x: x.name)
         for centroid in centroids_list:
             row = [centroid.name]
-            row.extend(self.centroid_features(centroid, field_ids,
-                                              encode=False))
+            row.extend(centroid_features(centroid, field_ids,
+                                         encode=False))
             row.append(centroid.count)
             if len(self.centroids) > 1:
                 for measure, result in self.centroids_distance(centroid):
@@ -575,11 +582,11 @@ class Cluster(ModelFields):
 
         if self.cluster_global:
             row = ["%s" % self.cluster_global.name]
-            row.extend(self.centroid_features(self.cluster_global, field_ids,
-                                              encode=False))
+            row.extend(centroid_features(self.cluster_global, field_ids,
+                                         encode=False))
             row.append(self.cluster_global.count)
             if len(self.centroids) > 1:
-                for measure, result in self.cluster_global_distance():
+                for measure, result in cluster_global_distance():
                     row.append(result)
             for measure, result in list(self.cluster_global.distance.items()):
                 if measure in CSV_STATISTICS:
@@ -627,8 +634,8 @@ class Cluster(ModelFields):
                 if isinstance(value, str):
                     value = "\"%s\"" % value
                 out.write(utf8("%s%s: %s" % (connector,
-                                              self.fields[field_id]['name'],
-                                              value)))
+                                             self.fields[field_id]['name'],
+                                             value)))
                 connector = ", "
         out.write("\n\n")
 
@@ -643,7 +650,7 @@ class Cluster(ModelFields):
                               centroids_list)
             for centroid in centroids_list:
                 out.write(utf8("%sTo centroid: %s\n" % (INDENT,
-                                                         centroid.name)))
+                                                        centroid.name)))
                 for measure, result in self.centroids_distance(centroid):
                     out.write("%s%s: %s\n" % (INDENT * 2, measure, result))
                 out.write("\n")

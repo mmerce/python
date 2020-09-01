@@ -41,8 +41,6 @@ linear_regression.predict({"petal length": 3, "petal width": 1,
 """
 import logging
 import math
-import copy
-import json
 
 try:
     import numpy as np
@@ -51,14 +49,12 @@ try:
 except ImportError:
     STATS = False
 
-from functools import cmp_to_key
 
 from bigml.api import FINISHED
-from bigml.api import get_status, get_api_connection
-from bigml.util import cast, check_no_training_missings, PRECISION, NUMERIC, \
-    flatten
+from bigml.api import get_status, get_api_connection, get_linear_regression_id
+from bigml.util import cast, check_no_training_missings, flatten, \
+    use_cache, load, NUMERIC
 from bigml.basemodel import get_resource_dict, extract_objective
-from bigml.model import parse_operating_point, sort_categories
 from bigml.modelfields import ModelFields
 
 try:
@@ -79,7 +75,7 @@ DUMMY = "dummy"
 CONTRAST = "contrast"
 OTHER = "other"
 
-def get_terms_array(terms, unique_terms, field, field_id):
+def get_terms_array(terms, unique_terms, field_id):
     """ Returns an array that represents the frequency of terms as ordered
     in the reference `terms` parameter.
 
@@ -103,7 +99,13 @@ class LinearRegression(ModelFields):
 
     """
 
-    def __init__(self, linear_regression, api=None):
+    def __init__(self, linear_regression, api=None, cache_get=None):
+
+        if use_cache(cache_get):
+            # using a cache to store the model attributes
+            self.__dict__ = load(get_linear_regression_id(linear_regression),
+                                 cache_get)
+            return
 
         self.resource_id = None
         self.input_fields = []
@@ -212,7 +214,7 @@ class LinearRegression(ModelFields):
           as numerics.
         """
         input_array = []
-        for index, field_id in enumerate(self.coeff_ids):
+        for field_id in self.coeff_ids:
             field = self.fields[field_id]
             optype = field["optype"]
             missing = False
@@ -229,7 +231,7 @@ class LinearRegression(ModelFields):
                 length = len(terms)
                 if field_id in unique_terms:
                     new_inputs = get_terms_array( \
-                        terms, unique_terms, field, field_id)
+                        terms, unique_terms, field_id)
                 else:
                     new_inputs = [0] * length
                     missing = True
