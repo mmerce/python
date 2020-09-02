@@ -54,7 +54,7 @@ from bigml.multivote import MultiVote
 from bigml.multivote import PLURALITY_CODE, PROBABILITY_CODE, CONFIDENCE_CODE
 from bigml.multimodel import MultiModel
 from bigml.basemodel import BaseModel, print_importance, check_local_but_fields
-from bigml.modelfields import ModelFields
+from bigml.modelfields import ModelFields, NUMERIC
 from bigml.multivotelist import MultiVoteList
 from bigml.util import cast, use_cache, load
 
@@ -241,7 +241,7 @@ class Ensemble(ModelFields):
             self.distribution = distribution
 
         self.regression = \
-            self.fields[self.objective_id].get('optype') == 'numeric'
+            self.fields[self.objective_id].get('optype') == NUMERIC
         if self.boosting:
             self.boosting_offsets = ensemble['object'].get('initial_offset',
                                                            0) \
@@ -764,6 +764,7 @@ class Ensemble(ModelFields):
             if median:
                 for prediction in votes.predictions:
                     prediction['prediction'] = prediction['median']
+
         if self.boosting is not None and not self.regression:
             categories = [ \
                 d[0] for d in

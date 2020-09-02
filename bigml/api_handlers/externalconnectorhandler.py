@@ -63,8 +63,7 @@ class ExternalConnectorHandler(ResourceHandler):
         """
         self.external_connector_url = self.url + EXTERNAL_CONNECTOR_PATH
 
-    def create_external_connector(self, connection_info, args=None,
-                                  wait_time=3, retries=10):
+    def create_external_connector(self, connection_info, args=None):
         """Creates an external connections from a dictionary containing the
         connection information.
 
@@ -90,8 +89,7 @@ class ExternalConnectorHandler(ResourceHandler):
         create_args.update({"connection": connection_info})
         create_args.update({"source": source})
         body = json.dumps(create_args)
-        return self._create(self.external_connector_url, body,
-                            wait_time=wait_time, retries=retries)
+        return self._create(self.external_connector_url, body)
 
     def get_external_connector(self, external_connector, query_string=''):
         """Retrieves an external connector.

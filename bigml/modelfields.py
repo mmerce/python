@@ -28,7 +28,8 @@ import re
 from bigml_chronos import chronos
 
 from bigml.util import invert_dictionary, dump, dumps, DEFAULT_LOCALE
-from bigml.constants import DEFAULT_MISSING_TOKENS, FIELDS_PARENT
+from bigml.constants import DEFAULT_MISSING_TOKENS, FIELDS_PARENT, \
+    ENSEMBLE_PATH
 from bigml.api_handlers.resourcehandler import get_resource_type
 from bigml.predicate import TM_FULL_TERM, TM_ALL
 
@@ -246,7 +247,9 @@ class ModelFields():
                     self.categories = {}
                 if terms or categories or numerics:
                     self.add_terms(categories, numerics)
-                if self.objective_id is not None:
+                if self.objective_id is not None and \
+                        get_resource_type(self.resource_id) != ENSEMBLE_PATH:
+                    # Only for models. Ensembles need their own logic
                     self.regression = \
                         (not hasattr(self, "boosting") or not self.boosting) \
                         and self.fields[self.objective_id][ \
