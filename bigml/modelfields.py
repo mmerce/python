@@ -247,7 +247,9 @@ class ModelFields():
                     self.categories = {}
                 if terms or categories or numerics:
                     self.add_terms(categories, numerics)
+
                 if self.objective_id is not None and \
+                        hasattr(self, "resource_id") and self.resource_id and \
                         get_resource_type(self.resource_id) != ENSEMBLE_PATH:
                     # Only for models. Ensembles need their own logic
                     self.regression = \
