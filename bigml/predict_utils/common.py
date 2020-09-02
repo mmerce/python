@@ -168,7 +168,7 @@ def proportional_predict(tree, offsets, fields, input_data, path=None,
         population = 0
         for child in children:
             (subtree_distribution, subtree_min,
-             subtree_max, _, subtree_pop, _) = \
+             subtree_max, _, subtree_pop, _, path) = \
                 proportional_predict( \
                     child, offsets, fields,
                     input_data, path, missing_found, median, parent=node)

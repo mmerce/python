@@ -279,7 +279,7 @@ class MultiModel():
                 prediction = model.predict(input_data,
                                            missing_strategy=missing_strategy,
                                            full=True)
-                if model.tree.regression:
+                if model.regression:
                     # if median is to be used, we just replace the prediction
                     if use_median:
                         prediction["prediction"] = prediction["median"]

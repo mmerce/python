@@ -103,6 +103,7 @@ def classification_proportional_predict(tree, weighted, fields, input_data):
         population,
         None,
         'categories',
+        [] if last_node[OFFSETS[str(weighted)]["children#"]] == 0 else \
         last_node[OFFSETS[str(weighted)]["children"]])
 
 

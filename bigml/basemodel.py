@@ -196,7 +196,7 @@ class BaseModel(ModelFields):
 
         check_fn = check_local_but_fields if fields is not None else \
             check_local_info
-        if checked or check_fn(model):
+        if isinstance(model, dict) and (checked or check_fn(model)):
             self.resource_id = model['resource']
         else:
             # If only the model id is provided, the short version of the model

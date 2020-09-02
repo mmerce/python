@@ -215,7 +215,7 @@ class Ensemble(ModelFields):
                 self.distributions = []
                 for model in models:
                     self.distributions.append({
-                        'training': {'categories': model.tree.distribution}
+                        'training': model.root_distribution
                     })
             except AttributeError:
                 self.distributions = [model['object']['model']['distribution']
