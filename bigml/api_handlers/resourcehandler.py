@@ -82,12 +82,18 @@ def resource_is_ready(resource):
     """Checks a fully fledged resource structure and returns True if finished.
 
     """
-    if not isinstance(resource, dict) or 'error' not in resource:
+    if not isinstance(resource, dict):
         raise Exception("No valid resource structure found")
-    if resource['error'] is not None:
-        raise Exception(resource['error']['status']['message'])
-    return (resource['code'] in [HTTP_OK, HTTP_ACCEPTED] and
-            get_status(resource)['code'] == c.FINISHED)
+    # full resources
+    if 'object' in resource:
+        if 'error' not in resource:
+            raise Exception("No valid resource structure found")
+        if resource['error'] is not None:
+            raise Exception(resource['error']['status']['message'])
+        return (resource['code'] in [HTTP_OK, HTTP_ACCEPTED] and
+                get_status(resource)['code'] == c.FINISHED)
+    # only API response contents
+    return get_status(resource)['code'] == c.FINISHED
 
 
 def check_resource_type(resource, expected_resource, message=None):
@@ -407,7 +413,8 @@ def check_resource(resource, get_method=None, query_string='', wait_time=1,
 
     """
     resource_id = get_resource_id(resource)
-    if isinstance(resource, dict) and resource.get("resource") is not None:
+    # ephemeral predictions
+    if isinstance(resource, dict) and resource.get("resource") is None:
         return resource
     if resource_id is None:
         raise ValueError("Failed to extract a valid resource id to check.")

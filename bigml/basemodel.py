@@ -85,24 +85,25 @@ def print_importance(instance, out=sys.stdout):
         count += 1
 
 
-def check_local_but_fields(model, inner_key="model"):
+def check_local_but_fields(model):
     """Whether the information in `model` is enough to use it locally
        except for the fields section
 
     """
     try:
+
         return resource_is_ready(model) and \
-            check_model_structure(model, inner_key)
+            check_model_structure(model)
     except Exception:
         return False
 
 
-def check_local_info(model, inner_key="model"):
+def check_local_info(model):
     """Whether the information in `model` is enough to use it locally
 
     """
     try:
-        return check_local_but_fields(model, inner_key) and \
+        return check_local_but_fields(model) and \
             check_model_fields(model)
     except Exception:
         return False
@@ -150,6 +151,7 @@ def get_resource_dict(resource, resource_type, api=None,
     # the first argument
     check_fn = check_local_but_fields if no_check_fields else \
         check_local_info
+
     if isinstance(resource, dict) and not check_fn( \
             resource):
         # if the fields used by the model are not

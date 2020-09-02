@@ -135,7 +135,10 @@ def proportional_predict(tree, offsets, fields, input_data, path=None,
 
     final_distribution = {}
     children_number = node[offsets["children#"]]
-    distribution = node[offsets["distribution"]]
+    if "wdistribution" in offsets:
+        distribution = node[offsets["wdistribution"]]
+    else:
+        distribution = node[offsets["distribution"]]
     children = [] if children_number == 0 else node[offsets["children"]]
     t_min = None if offsets.get("min") is None else node[offsets["min"]]
     t_max = None if offsets.get("max") is None else node[offsets["max"]]

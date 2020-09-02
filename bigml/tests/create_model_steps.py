@@ -169,7 +169,7 @@ def model_from_shared_key(step):
 
 #@step(r'"(.*)" field\'s name is changed to "(.*)"')
 def field_name_to_new_name(step, field_id, new_name):
-    eq_(world.local_model.tree.fields[field_id]['name'], new_name)
+    eq_(world.local_model.fields[field_id]['name'], new_name)
 
 #@step(r'I create a model associated to centroid "(.*)"')
 def i_create_a_model_from_cluster(step, centroid_id):

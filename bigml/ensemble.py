@@ -139,7 +139,7 @@ class Ensemble(ModelFields):
         else:
             ensemble = self.get_ensemble_resource(ensemble)
             self.resource_id = get_ensemble_id(ensemble)
-            if not check_local_but_fields(ensemble, inner_key="ensemble"):
+            if not check_local_but_fields(ensemble):
                 # avoid checking fields because of old ensembles
                 ensemble = retrieve_resource(self.api, self.resource_id,
                                              no_check_fields=True)

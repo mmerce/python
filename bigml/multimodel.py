@@ -38,8 +38,9 @@ model.predict({"petal length": 3, "petal width": 1})
 import logging
 import ast
 
+from functools import partial
 
-from bigml.model import Model, cast_prediction
+from bigml.model import Model, cast_prediction, to_prediction
 from bigml.model import LAST_PREDICTION
 from bigml.util import get_predictions_file_name
 from bigml.multivote import MultiVote
@@ -312,4 +313,4 @@ class MultiModel():
                     model.resource_id,
                     predictions_file_path))
         return read_votes(
-            votes_files, self.models[0].to_prediction, data_locale=data_locale)
+            votes_files, partial(to_prediction, self.models[0]), data_locale=data_locale)

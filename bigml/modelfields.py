@@ -100,11 +100,13 @@ def check_model_fields(model):
     return False
 
 
-def check_model_structure(model, inner_key="model"):
+def check_model_structure(model, inner_key=None):
     """Checks the model structure to see if it contains all the
     main expected keys
 
     """
+    if inner_key is None:
+        inner_key = FIELDS_PARENT.get(get_resource_type(model), 'model')
     return (isinstance(model, dict) and 'resource' in model and
             model['resource'] is not None and
             (('object' in model and inner_key in model['object']) or
