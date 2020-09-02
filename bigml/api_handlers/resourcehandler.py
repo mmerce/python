@@ -30,7 +30,6 @@ from bigml.util import get_exponential_wait, get_status, is_status_final, \
     save, save_json
 from bigml.util import DFT_STORAGE
 from bigml.bigmlconnection import HTTP_OK, HTTP_ACCEPTED, HTTP_CREATED, LOGGER
-from bigml.bigmlconnection import BigMLConnection
 from bigml.constants import WAITING, QUEUED, STARTED, IN_PROGRESS, \
     SUMMARIZED, FINISHED, UPLOADING, FAULTY, UNKNOWN, RUNNABLE
 
@@ -493,7 +492,7 @@ def http_ok(resource):
 
 
 
-class ResourceHandler(BigMLConnection):
+class ResourceHandler():
     """This class is used by the BigML class as
        a mixin that provides the get method for all kind of
        resources and auxiliar utilities to check their status. It should not

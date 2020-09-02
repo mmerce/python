@@ -251,6 +251,7 @@ class BigMLConnection():
         if set_locale:
             locale.setlocale(locale.LC_ALL, DEFAULT_LOCALE)
         self.storage = assign_dir(storage)
+        print("***bigml", vars(self))
 
     def _set_api_urls(self, dev_mode=False, domain=None):
         """Sets the urls that point to the REST api methods for each resource

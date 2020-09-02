@@ -299,7 +299,6 @@ class BigML(ExternalConnectorHandler,
         given by the organization administrator.
 
         """
-
         BigMLConnection.__init__(self, username=username, api_key=api_key,
                                  debug=debug,
                                  set_locale=set_locale, storage=storage,
@@ -374,6 +373,7 @@ class BigML(ExternalConnectorHandler,
                 resource_type, resource_type))
             self.listers[resource_type] = getattr(self,
                                                   "list_%s" % method_name)
+
 
     def create(self, resource_type, *args, **kwargs):
         """Create resources
