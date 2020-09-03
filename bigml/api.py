@@ -374,7 +374,6 @@ class BigML(ExternalConnectorHandler,
             self.listers[resource_type] = getattr(self,
                                                   "list_%s" % method_name)
 
-
     def create(self, resource_type, *args, **kwargs):
         """Create resources
 

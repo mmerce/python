@@ -587,24 +587,24 @@ def use_cache(cache_get):
     return cache_get is not None and hasattr(cache_get, '__call__')
 
 
-def dump(local, output=None, cache_set=None):
+def dump(local_attrs, output=None, cache_set=None):
     """Uses msgpack to serialize the local resource object
     If cache_set is filled with a cache set method, the method is called
 
     """
     if use_cache(cache_set):
-        dump_string = msgpack.dumps(local.__dict__)
-        cache_set(local.resource_id, dump_string)
+        dump_string = msgpack.dumps(local_attrs)
+        cache_set(local_attrs["resource_id"], dump_string)
     else:
-        msgpack.pack(local.__dict__, output)
+        msgpack.pack(local_attrs, output)
 
 
-def dumps(local):
+def dumps(local_attrs):
     """Uses msgpack to serialize the anomaly object to a string
 
     """
 
-    return msgpack.dumps(local.__dict__)
+    return msgpack.dumps(local_attrs)
 
 
 def load(resource_id, cache_get):

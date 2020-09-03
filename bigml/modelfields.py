@@ -477,10 +477,12 @@ class ModelFields():
         If cache_set is filled with a cache set method, the method is called
 
         """
-        dump(self, output=output, cache_set=cache_set)
+        self_vars = vars(self)
+        dump(self_vars, output=output, cache_set=cache_set)
 
     def dumps(self):
         """Uses msgpack to serialize the resource object to a string
 
         """
-        dumps(self)
+        self_vars = vars(self)
+        dumps(self_vars)

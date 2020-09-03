@@ -108,10 +108,10 @@ class PCA(ModelFields):
         self.item_analysis = {}
         self.standardize = None
         self.famd_j = 1
-        self.api = get_api_connection(api)
+        api = get_api_connection(api)
 
         self.resource_id, pca = get_resource_dict( \
-            pca, "pca", api=self.api)
+            pca, "pca", api=api)
 
         if 'object' in pca and \
             isinstance(pca['object'], dict):

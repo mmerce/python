@@ -101,7 +101,9 @@ class MultiModel():
 
     """
 
-    def __init__(self, models, api=None, fields=None, class_names=None):
+    def __init__(self, models, api=None, fields=None, class_names=None,
+                 cache_get=None):
+
         self.models = []
         self.class_names = class_names
 
@@ -110,9 +112,11 @@ class MultiModel():
                 self.models = models
             else:
                 for model in models:
-                    self.models.append(Model(model, api=api, fields=fields))
+                    self.models.append(Model(model, api=api, fields=fields,
+                                       cache_get=cache_get))
         else:
-            self.models.append(Model(models, api=api, fields=fields))
+            self.models.append(Model(models, api=api, fields=fields,
+                                     cache_get=cache_get))
 
     def list_models(self):
         """Lists all the model/ids that compound the multi model.
@@ -313,4 +317,5 @@ class MultiModel():
                     model.resource_id,
                     predictions_file_path))
         return read_votes(
-            votes_files, partial(to_prediction, self.models[0]), data_locale=data_locale)
+            votes_files, partial(to_prediction, self.models[0]),
+            data_locale=data_locale)

@@ -35,7 +35,7 @@ class Item():
         self.count = item_info.get('count')
         self.description = item_info.get('description')
         self.field_id = item_info.get('field_id')
-        self.field_info = fields[self.field_id]
+        self.field_info = item_info.get('field_info', fields[self.field_id])
         self.name = item_info.get('name')
         self.bin_end = item_info.get('bin_end')
         self.bin_start = item_info.get('bin_start')

@@ -49,7 +49,7 @@ from bigml.api import FINISHED
 from bigml.api import get_status, get_api_connection, get_topic_model_id
 from bigml.basemodel import get_resource_dict
 from bigml.modelfields import ModelFields
-from bigml.util import use_cache, load
+from bigml.util import use_cache, load, dump, dumps
 
 
 LOGGER = logging.getLogger('BigML')
@@ -90,9 +90,12 @@ class TopicModel(ModelFields):
         if use_cache(cache_get):
             # using a cache to store the model attributes
             self.__dict__ = load(get_topic_model_id(topic_model), cache_get)
+            if self.lang in CODE_TO_NAME:
+                self.stemmer = Stemmer.Stemmer(CODE_TO_NAME[self.lang])
             return
 
         self.resource_id = None
+        self.lang = None
         self.stemmer = None
         self.seed = None
         self.case_sensitive = False
@@ -102,10 +105,10 @@ class TopicModel(ModelFields):
         self.phi = None
         self.term_to_index = None
         self.topics = []
-        self.api = get_api_connection(api)
+        api = get_api_connection(api)
 
         self.resource_id, topic_model = get_resource_dict( \
-            topic_model, "topicmodel", api=self.api)
+            topic_model, "topicmodel", api=api)
 
         if 'object' in topic_model and isinstance(topic_model['object'], dict):
             topic_model = topic_model['object']
@@ -119,9 +122,9 @@ class TopicModel(ModelFields):
                 self.topics = model['topics']
 
                 if 'language' in model and  model['language'] is not None:
-                    lang = model['language']
-                    if lang in CODE_TO_NAME:
-                        self.stemmer = Stemmer.Stemmer(CODE_TO_NAME[lang])
+                    self.lang = model['language']
+                    if self.lang in CODE_TO_NAME:
+                        self.stemmer = Stemmer.Stemmer(CODE_TO_NAME[self.lang])
 
                 self.term_to_index = {self.stem(term): index for index, term
                                       in enumerate(model['termset'])}
@@ -372,3 +375,20 @@ class TopicModel(ModelFields):
 
         return [(sample_counts[k] + self.alpha) / normalizer
                 for k in range(self.ntopics)]
+
+    def dump(self, output=None, cache_set=None):
+        """Uses msgpack to serialize the resource object
+        If cache_set is filled with a cache set method, the method is called
+
+        """
+        self_vars = vars(self)
+        del self_vars["stemmer"]
+        dump(self_vars, output=output, cache_set=cache_set)
+
+    def dumps(self):
+        """Uses msgpack to serialize the resource object to a string
+
+        """
+        self_vars = vars(self)
+        del self_vars["stemmer"]
+        dumps(self_vars)

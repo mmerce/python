@@ -48,7 +48,7 @@ import codecs
 
 from bigml.api import FINISHED
 from bigml.api import get_status, get_api_connection, get_cluster_id
-from bigml.util import cast, utf8, NUMERIC, use_cache, load
+from bigml.util import cast, utf8, NUMERIC, use_cache, load, dump, dumps
 from bigml.centroid import Centroid
 from bigml.basemodel import get_resource_dict
 from bigml.generators.model import print_distribution
@@ -147,9 +147,14 @@ class Cluster(ModelFields):
 
     def __init__(self, cluster, api=None, cache_get=None):
 
+        self.api = get_api_connection(api)
         if use_cache(cache_get):
             # using a cache to store the cluster attributes
             self.__dict__ = load(get_cluster_id(cluster), cache_get)
+
+            for index, centroid in enumerate(self.centroids):
+                self.centroids[index] = Centroid(centroid)
+            self.cluster_global = Centroid(self.cluster_global)
             return
 
         self.resource_id = None
@@ -172,7 +177,6 @@ class Cluster(ModelFields):
         self.item_analysis = {}
         self.items = {}
         self.datasets = {}
-        self.api = get_api_connection(api)
 
         self.resource_id, cluster = get_resource_dict( \
             cluster, "cluster", api=self.api)
@@ -654,3 +658,26 @@ class Cluster(ModelFields):
                 for measure, result in self.centroids_distance(centroid):
                     out.write("%s%s: %s\n" % (INDENT * 2, measure, result))
                 out.write("\n")
+
+    def dump(self, output=None, cache_set=None):
+        """Uses msgpack to serialize the resource object
+        If cache_set is filled with a cache set method, the method is called
+
+        """
+        self_vars = vars(self)
+        for index, centroid in enumerate(self_vars["centroids"]):
+            self_vars["centroids"][index] = vars(centroid)
+        self_vars["cluster_global"] = vars(self_vars["cluster_global"])
+        del self_vars["api"]
+        dump(self_vars, output=output, cache_set=cache_set)
+
+    def dumps(self):
+        """Uses msgpack to serialize the resource object to a string
+
+        """
+        self_vars = vars(self)
+        for index, centroid in enumerate(self_vars["centroids"]):
+            self_vars["centroids"][index] = vars(centroid)
+        self_vars["cluster_global"] = vars(self_vars["cluster_global"])
+        del self_vars["api"]
+        dumps(self_vars)

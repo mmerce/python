@@ -56,7 +56,7 @@ from bigml.multimodel import MultiModel
 from bigml.basemodel import BaseModel, print_importance, check_local_but_fields
 from bigml.modelfields import ModelFields, NUMERIC
 from bigml.multivotelist import MultiVoteList
-from bigml.util import cast, use_cache, load
+from bigml.util import cast, use_cache, load, dump, dumps
 
 
 BOOSTING = 1
@@ -95,14 +95,27 @@ class Ensemble(ModelFields):
                   cache storage.
     """
 
-    def __init__(self, ensemble,
-                 api=None,
-                 max_models=None,
-                 cache_get=None):
+    def __init__(self, ensemble, api=None, max_models=None, cache_get=None):
 
         if use_cache(cache_get):
             # using a cache to store the model attributes
             self.__dict__ = load(get_ensemble_id(ensemble), cache_get)
+            self.api = get_api_connection(api)
+            if len(self.models_splits) == 1:
+                # retrieve the models from a cache get function
+                try:
+                    models = [Model(model_id, cache_get=cache_get)
+                              for model_id
+                              in self.models_splits[0]]
+                except Exception as exc:
+                    raise Exception('Error while calling the user-given'
+                                    ' function %s: %s' %
+                                    (cache_get.__name__, str(exc)))
+                self.multi_model = MultiModel(models,
+                                              self.api,
+                                              fields=self.fields,
+                                              class_names=self.class_names,
+                                              cache_get=cache_get)
             return
 
         self.resource_id = None
@@ -266,6 +279,7 @@ class Ensemble(ModelFields):
         ModelFields.__init__( \
             self, self.fields,
             objective_id=self.objective_id)
+
         if len(self.models_splits) == 1:
             self.multi_model = MultiModel(models,
                                           self.api,
@@ -928,3 +942,26 @@ class Ensemble(ModelFields):
             objective_id = None
         gc.collect()
         return fields, objective_id
+
+    def dump(self, output=None, cache_set=None):
+        """Uses msgpack to serialize the resource object
+        If cache_set is filled with a cache set method, the method is called
+
+        """
+        self_vars = vars(self)
+        del self_vars["api"]
+        if "multi_model" in self_vars:
+            for model in self_vars["multi_model"].models:
+                model.dump(output=output, cache_set=cache_set)
+            del self_vars["multi_model"]
+        dump(self_vars, output=output, cache_set=cache_set)
+
+    def dumps(self):
+        """Uses msgpack to serialize the resource object to a string
+
+        """
+        self_vars = vars(self)
+        del self_vars["api"]
+        if "multi_model" in self_vars:
+            del self_vars["multi_model"]
+        dumps(self_vars)
