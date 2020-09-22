@@ -117,3 +117,15 @@ class PCAHandlerMixin(ResourceHandlerMixin):
         pca_id = get_pca_id(pca)
         if pca_id:
             return self._delete("%s%s" % (self.url, pca_id))
+
+    def clone_pca(self, pca,
+                  args=None, wait_time=3, retries=10):
+        """Creates a cloned PCA from an existing `PCA`
+
+        """
+        create_args = self._set_clone_from_args(
+            pca, "pca", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.pca_url, body)

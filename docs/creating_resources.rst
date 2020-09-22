@@ -349,6 +349,50 @@ method. For example, to get the status of our source we would use:
 
     api.status(source)
 
+Creating Composite Sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BigML offers support to use images or collections of CSVs
+in your Machine Learning models.
+Uploading images to BigML is as easy as uploading any other file. Each
+file will be ingested and a new source will be created from it. To build
+Machine Learning models one typically needs lots of images and they are
+usually uploaded in batches stored in
+``.zip`` or ``.tar`` files. BigML is able to ingest such a file and creates a
+``composite source`` from it
+and for each file contained in the compressed file a
+``component source`` will be created. Thus, a zip file containg two images
+can be uploaded to BigML by using the ``create_source`` method:
+
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    composite_source = api.create_source("images_zip.zip")
+
+and that operation will create three sources: one per image plus the composite
+source that contains them.
+
+If you put together a bunch of image sources inside a composite,
+that composite will also have format "image". If you create a dataset
+from it, every row will correspond to one of the images in the composite,
+and have a column representing the image data, and another its filename.
+Also, BigML will extract around two hundred features per image by default,
+representing its gradients histogram, and you can choose several others or
+add labels to each image. Please, check the complete `API documentation about
+composite sources <https://bigml.com/api/sources#sr_composite_sources>`_ to
+learn how to create them, update their contents while they are ``open``
+(editable) and ``close`` them so that you can create datasets and models
+from them. Closing a source makes it immutable, but any source
+can be cloned into a new source open to modification.
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    closed_source = "source/526fc344035d071ea3031d72"
+    open_source = api.clone_source(closed_source)
+
+
 Creating Datasets
 ~~~~~~~~~~~~~~~~~
 
@@ -445,6 +489,15 @@ to reference the dataset to be created. For instance,
 would generate a new dataset containing the subset of instances in the cluster
 associated to the centroid id ``000000``.
 
+Existing datasets can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    dataset = "dataset/526fc344035d071ea3031d76"
+    cloned_dataset = api.clone_dataset(dataset)
+
+
 Creating Models
 ~~~~~~~~~~~~~~~
 
@@ -487,6 +540,15 @@ a concrete centroid can be built by providing the cluster and centroid ids:
 
 if no centroid id is provided, the first one appearing in the cluster is used.
 
+Existing models can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    model = "model/526fc344035d071ea3031d76"
+    cloned_model = api.clone_model(model)
+
+
 Creating Clusters
 ~~~~~~~~~~~~~~~~~
 
@@ -508,6 +570,15 @@ Let's create a cluster from a given dataset:
 
 that will create a cluster with 5 centroids.
 
+Existing clusters can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    cluster = "cluster/526fc344035d071ea3031d76"
+    cloned_cluster = api.clone_cluster(cluster)
+
+
 Creating Anomaly Detectors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -527,6 +598,15 @@ Let's create an anomaly detector from a given dataset:
 
 that will create an anomaly resource with a `top_anomalies` block of the
 most anomalous points.
+
+Existing anomaly detectors can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    anomaly = "anomaly/526fc344035d071ea3031d76"
+    cloned_anomaly = api.clone_anomaly(anomaly)
+
 
 Creating Associations
 ~~~~~~~~~~~~~~~~~~~~~
@@ -561,6 +641,14 @@ list of ids as the first argument in the api call
         "name": "my association", "input_fields": ["000000", "000001"], \
         "range": [1, 10]})
 
+Existing associations can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    association = "association/526fc344035d071ea3031d76"
+    cloned_association = api.clone_association(association)
+
 
 Creating Topic Models
 ~~~~~~~~~~~~~~~~~~~~~
@@ -593,6 +681,13 @@ list of ids as the first argument in the api call
     topic_model = api.create_topic_model([dataset1, dataset2], { \
         "name": "my topics", "number_of_topics": 32})
 
+Existing topic models can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    topic_model = "topicmodel/526fc344035d071ea3031d76"
+    cloned_topic_model = api.clone_topic_model(topic_model)
 
 Creating Time Series
 ~~~~~~~~~~~~~~~~~~~~
@@ -625,6 +720,14 @@ list of ids as the first argument in the api call
 
     time_series = api.create_time_series([dataset1, dataset2], { \
         "name": "my time series", "horizon": 10})
+
+Existing time series can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    time_series = "timeseries/526fc344035d071ea3031d76"
+    cloned_time_series = api.clone_time_series(time_series)
 
 
 Creating OptiML
@@ -910,6 +1013,14 @@ be the maximum number of iterations:
     args = {'boosting': {'iterations': 20}}
     ensemble = api.create_ensemble('dataset/5143a51a37203f2cf7000972', args)
 
+Existing ensembles can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    ensembles = "ensembles/526fc344035d071ea3031d76"
+    cloned_ensembles = api.clone_ensembles(ensembles)
+
 
 Creating Linear Regressions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -940,6 +1051,13 @@ default coding). For a more detailed description of the
 Documentation
 <https://bigml.com/api/linearregressions#lr_linear_regression_arguments>`_.
 
+Existing linear regressions can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    linear_regression = "linearregression/526fc344035d071ea3031d76"
+    cloned_linear_regression = api.clone_linear_regression(linear_regression)
 
 
 Creating logistic regressions
@@ -972,6 +1090,14 @@ default coding). For a more detailed description of the
 Documentation
 <https://bigml.com/api/logisticregressions#lr_logistic_regression_arguments>`_.
 
+Existing logistic regressions can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    logistic_regression = "logisticregression/526fc344035d071ea3031d76"
+    cloned_logistic_regression = api.clone_logistic_regression(
+        logistic_regression)
 
 Creating Deepnets
 ~~~~~~~~~~~~~~~~~
@@ -1013,6 +1139,15 @@ available attributes and its syntax, please see the `Developers API
 Documentation
 <https://bigml.com/api/deepnets#dn_deepnet_arguments>`_.
 
+Existing deepnets can also be cloned:
+
+.. code-block:: python
+    from bigml.api import BigML
+    api = BigML()
+    deepnets = "deepnets/526fc344035d071ea3031d76"
+    cloned_deepnets = api.clone_deepnets(deepnets)
+
+
 Creating PCAs
 ~~~~~~~~~~~~~
 
@@ -1035,7 +1170,6 @@ creation time.
 Please see the `Developers API
 Documentation
 <https://bigml.com/api/pcas>`_.
-
 
 Creating Batch Predictions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

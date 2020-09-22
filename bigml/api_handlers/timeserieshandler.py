@@ -121,3 +121,15 @@ class TimeSeriesHandlerMixin(ResourceHandlerMixin):
         time_series_id = get_time_series_id(time_series)
         if time_series_id:
             return self._delete("%s%s" % (self.url, time_series_id))
+
+    def clone_time_series(self, time_series,
+                          args=None, wait_time=3, retries=10):
+        """Creates a cloned time_series from an existing `time series`
+
+        """
+        create_args = self._set_clone_from_args(
+            time_series, "timeseries", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.time_series_url, body)

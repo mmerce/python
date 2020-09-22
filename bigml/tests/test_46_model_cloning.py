@@ -28,6 +28,8 @@ from . import create_cluster_steps as cluster_create
 from . import create_lda_steps as topic_create
 from . import create_anomaly_steps as anomaly_create
 from . import create_association_steps as association_create
+from . import create_time_series_steps as time_create
+from . import create_pca_steps as pca_create
 
 
 class TestCloning(object):
@@ -338,3 +340,68 @@ class TestCloning(object):
             association_create.clone_association(self, association)
             association_create.the_cloned_association_is(
                 self, association)
+
+    def test_scenario10(self):
+        """
+            Scenario: Successfully creating a clone from a time series:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create a time series
+                And I wait until the time series is ready less than <time_3> secs
+                Then the origin time series is the previous time series
+
+                Examples:
+                | data                | time_1  | time_2 | time_3 |
+                | ../data/iris.csv | 10      | 10     | 10     |
+        """
+        print(self.test_scenario10.__doc__)
+        examples = [
+            ['data/iris.csv', '10', '10', '100']]
+        for example in examples:
+            print("\nTesting with:\n", example)
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(
+                self, example[2])
+            time_create.i_create_a_time_series(self)
+            time_create.the_time_series_is_finished_in_less_than(
+                self, example[3])
+            time_series = world.time_series["resource"]
+            time_create.clone_time_series(self, time_series)
+            time_create.the_cloned_time_series_is(
+                self, time_series)
+
+    def test_scenario11(self):
+        """
+            Scenario: Successfully creating a clone from a pca:
+                Given I create a data source uploading a "<data>" file
+                And I wait until the source is ready less than <time_1> secs
+                And I create a dataset
+                And I wait until the dataset is ready less than <time_2> secs
+                And I create a pca
+                And I wait until the pca is ready less than <time_3> secs
+                Then the origin pca is the previous pca
+
+                Examples:
+                | data                | time_1  | time_2 | time_3 |
+                | ../data/iris.csv | 10      | 10     | 10     |
+        """
+        print(self.test_scenario11.__doc__)
+        examples = [
+            ['data/iris.csv', '10', '10', '100']]
+        for example in examples:
+            print("\nTesting with:\n", example)
+            source_create.i_upload_a_file(self, example[0])
+            source_create.the_source_is_finished(self, example[1])
+            dataset_create.i_create_a_dataset(self)
+            dataset_create.the_dataset_is_finished_in_less_than(
+                self, example[2])
+            pca_create.i_create_a_pca(self)
+            pca_create.the_pca_is_finished_in_less_than(
+                self, example[3])
+            pca = world.pca["resource"]
+            pca_create.clone_pca(self, pca)
+            pca_create.the_cloned_pca_is(self, pca)
