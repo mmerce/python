@@ -37,6 +37,7 @@ RESOURCE_TYPES = [
     'cluster',
     'fusion',
     'optiml',
+    'composite',
     'source',
     'dataset',
     'prediction',
@@ -168,10 +169,14 @@ class World(object):
             if object_list:
                 print("Deleting %s %s" % (len(object_list),
                                           plural(resource_type)))
+                kwargs = {}
+                if resource_type == "composite":
+                    resource_type = "source"
+                    kwargs = {"query_string": "delete_all=true"}
                 delete_method = self.api.deleters[resource_type]
                 for obj_id in object_list:
                     counter = 0
-                    result = delete_method(obj_id)
+                    result = delete_method(obj_id, **kwargs)
                     while (result['code'] != HTTP_NO_CONTENT and
                            counter < MAX_RETRIES):
                         print("Delete failed for %s. Retrying" % obj_id)

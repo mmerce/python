@@ -115,3 +115,15 @@ class TopicModelHandlerMixin(ResourceHandlerMixin):
         topic_model_id = get_topic_model_id(topic_model)
         if topic_model_id:
             return self._delete("%s%s" % (self.url, topic_model_id))
+
+    def clone_topic_model(self, topic_model,
+                          args=None, wait_time=3, retries=10):
+        """Creates a cloned topic model from an existing `topic model`
+
+        """
+        create_args = self._set_clone_from_args(
+            topic_model, "topicmodel", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.topic_model_url, body)

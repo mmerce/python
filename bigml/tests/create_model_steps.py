@@ -246,6 +246,15 @@ def i_create_a_deepnet(step):
     world.deepnet = resource['object']
     world.deepnets.append(resource['resource'])
 
+#@step(r'I create a quick deepnet$')
+def i_create_a_quick_deepnet(step):
+    dataset = world.dataset.get('resource')
+    resource = world.api.create_deepnet(dataset, {"max_training_time": 100})
+    world.status = resource['code']
+    eq_(world.status, HTTP_CREATED)
+    world.location = resource['location']
+    world.deepnet = resource['object']
+    world.deepnets.append(resource['resource'])
 
 #@step(r'I create a non-suggested deepnet model$')
 def i_create_a_no_suggest_deepnet(step):
@@ -542,3 +551,43 @@ def i_create_local_linear_regression_from_file(step, export_file):
 def check_linear_regression_id_local_id(step):
     eq_(world.local_linear_regression.resource_id,
         world.linear_regression["resource"])
+
+#@step(r'I clone model')
+def clone_model(step, model):
+    resource = world.api.clone_model(model, {'project': world.project_id})
+    # update status
+    world.status = resource['code']
+    world.location = resource['location']
+    world.model = resource['object']
+    # save reference
+    world.models.append(resource['resource'])
+
+def the_cloned_model_is(step, model):
+    eq_(world.model["origin"], model)
+
+#@step(r'I clone deepnet')
+def clone_deepnet(step, deepnet):
+    resource = world.api.clone_deepnet(deepnet, {'project': world.project_id})
+    # update status
+    world.status = resource['code']
+    world.location = resource['location']
+    world.deepnet = resource['object']
+    # save reference
+    world.deepnets.append(resource['resource'])
+
+def the_cloned_deepnet_is(step, deepnet):
+    eq_(world.deepnet["origin"], deepnet)
+
+#@step(r'I clone logistic regression')
+def clone_logistic_regression(step, logistic_regression):
+    resource = world.api.clone_logistic_regression(
+        logistic_regression, {'project': world.project_id})
+    # update status
+    world.status = resource['code']
+    world.location = resource['location']
+    world.logistic_regression = resource['object']
+    # save reference
+    world.logistic_regressions.append(resource['resource'])
+
+def the_cloned_logistic_regression_is(step, logistic_regression):
+    eq_(world.logistic_regression["origin"], logistic_regression)

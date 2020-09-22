@@ -122,3 +122,15 @@ class LogisticRegressionHandlerMixin(ResourceHandlerMixin):
             logistic_regression)
         if logistic_regression_id:
             return self._delete("%s%s" % (self.url, logistic_regression_id))
+
+    def clone_logistic_regression(self, logistic_regression,
+                                  args=None, wait_time=3, retries=10):
+        """Creates a cloned logistic regression from an existing `logistic regression`
+
+        """
+        create_args = self._set_clone_from_args(
+            logistic_regression, "logisticregression",
+            args=args, wait_time=wait_time, retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.logistic_regression_url, body)

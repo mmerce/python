@@ -115,3 +115,15 @@ class ClusterHandlerMixin(ResourceHandlerMixin):
         cluster_id = get_cluster_id(cluster)
         if cluster_id:
             return self._delete("%s%s" % (self.url, cluster_id))
+
+    def clone_cluster(self, cluster,
+                      args=None, wait_time=3, retries=10):
+        """Creates a cloned cluster from an existing `cluster`
+
+        """
+        create_args = self._set_clone_from_args(
+            cluster, "cluster", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.cluster_url, body)

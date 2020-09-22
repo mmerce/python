@@ -3,6 +3,11 @@
 History
 -------
 
+6.1.0 (2020-09-17)
+~~~~~~~~~~~~~~~~~~
+
+- Adding composite sources to the API REST interface methods.
+
 6.0.0 (2020-09-02)
 ~~~~~~~~~~~~~~~~~~
 

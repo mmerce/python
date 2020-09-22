@@ -164,3 +164,15 @@ class ModelHandlerMixin(ResourceHandlerMixin):
         model_id = get_model_id(model)
         if model_id:
             return self._delete("%s%s" % (self.url, model_id))
+
+    def clone_model(self, model,
+                    args=None, wait_time=3, retries=10):
+        """Creates a cloned model from an existing `model`
+
+        """
+        create_args = self._set_clone_from_args(
+            model, "model", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.model_url, body)

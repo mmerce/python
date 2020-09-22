@@ -48,7 +48,7 @@ from bigml.bigmlconnection import (
     HTTP_INTERNAL_SERVER_ERROR, GAE_ENABLED, SEND_JSON)
 from bigml.bigmlconnection import json_load
 from bigml.api_handlers.resourcehandler import check_resource_type, \
-    resource_is_ready, get_source_id
+    resource_is_ready, get_source_id, get_id, get_resource_type
 from bigml.constants import SOURCE_PATH
 from bigml.api_handlers.resourcehandler import ResourceHandlerMixin, LOGGER
 
@@ -144,7 +144,6 @@ class SourceHandlerMixin(ResourceHandlerMixin):
                 "message": "The resource couldn't be created"}}
 
         try:
-
             if isinstance(file_name, str):
                 name = os.path.basename(file_name)
                 file_handler = open(file_name, "rb")
@@ -213,6 +212,56 @@ class SourceHandlerMixin(ResourceHandlerMixin):
         return maybe_save(resource_id, self.storage, code,
                           location, resource, error)
 
+    def clone_source(self, source,
+                     args=None, wait_time=3, retries=10):
+        """Creates a cloned source from an existing `source`
+
+        """
+        create_args = self._set_clone_from_args(
+            source, "source", args=args, wait_time=wait_time, retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.source_url, body)
+
+    def _create_composite(self, sources, args=None,
+                          wait_time=3, retries=10):
+        """Creates a composite source from an existing `source` or list of
+           sources
+
+        """
+        create_args = {}
+        if args is not None:
+            create_args.update(args)
+
+        if not isinstance(sources, list):
+            sources = [sources]
+
+        source_ids = []
+        for source in sources:
+            # we accept full resource IDs or pure IDs and produce pure IDs
+            try:
+                source_id = get_source_id(source)
+            except ValueError:
+                source_id = None
+
+            if source_id is None:
+                pure_id = get_id(source)
+                source_id = "source/%s" % pure_id
+            else:
+                resource_type = get_resource_type(source)
+                pure_id = source_id.replace("source/", "")
+
+            if pure_id is not None:
+                source_ids.append(pure_id)
+            else:
+                raise Exception("A source or list of source ids"
+                                " are needed to create a"
+                                " source.")
+        create_args.update({"sources": source_ids})
+
+        body = json.dumps(create_args)
+        return self._create(self.source_url, body)
+
     def create_source(self, path=None, args=None):
         """Creates a new source.
 
@@ -227,9 +276,19 @@ class SourceHandlerMixin(ResourceHandlerMixin):
         if is_url(path):
             return self._create_remote_source(path, args=args)
         if isinstance(path, list):
+            if path and all([get_id(item) is not None \
+                    for item in path]):
+                # list of sources
+                return self._create_composite(path, args=args)
             return self._create_inline_source(path, args=args)
         if isinstance(path, dict):
             return self._create_connector_source(path, args=args)
+        try:
+            if get_source_id(path) is not None:
+            # cloning source
+                return self.clone_source(path, args=args)
+        except ValueError:
+            pass
         return self._create_local_source(file_name=path, args=args)
 
     def get_source(self, source, query_string=''):
@@ -276,7 +335,7 @@ class SourceHandlerMixin(ResourceHandlerMixin):
             body = json.dumps(changes)
             return self._update("%s%s" % (self.url, source_id), body)
 
-    def delete_source(self, source):
+    def delete_source(self, source, query_string=''):
         """Deletes a remote source permanently.
 
         """
@@ -284,4 +343,5 @@ class SourceHandlerMixin(ResourceHandlerMixin):
                             message="A source id is needed.")
         source_id = get_source_id(source)
         if source_id:
-            return self._delete("%s%s" % (self.url, source_id))
+            return self._delete("%s%s" % (self.url, source_id),
+                                query_string=query_string)

@@ -119,3 +119,15 @@ class DeepnetHandlerMixin(ResourceHandlerMixin):
         deepnet_id = get_deepnet_id(deepnet)
         if deepnet_id:
             return self._delete("%s%s" % (self.url, deepnet_id))
+
+    def clone_deepnet(self, deepnet,
+                      args=None, wait_time=3, retries=10):
+        """Creates a cloned deepnet from an existing `deepnet`
+
+        """
+        create_args = self._set_clone_from_args(
+            deepnet, "deepnet", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.deepnet_url, body)

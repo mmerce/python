@@ -215,3 +215,15 @@ class DatasetHandlerMixin(ResourceHandlerMixin):
                                               DOWNLOAD_DIR),
                                   filename=filename,
                                   retries=retries)
+
+    def clone_dataset(self, dataset,
+                      args=None, wait_time=3, retries=10):
+        """Creates a cloned dataset from an existing `dataset`
+
+        """
+        create_args = self._set_clone_from_args(
+            dataset, "dataset", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.dataset_url, body)

@@ -110,3 +110,15 @@ class EnsembleHandlerMixin(ResourceHandlerMixin):
         ensemble_id = get_ensemble_id(ensemble)
         if ensemble_id:
             return self._delete("%s%s" % (self.url, ensemble_id))
+
+    def clone_ensemble(self, ensemble,
+                       args=None, wait_time=3, retries=10):
+        """Creates a cloned ensemble from an existing `ensemble`
+
+        """
+        create_args = self._set_clone_from_args(
+            ensemble, "ensemble", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.ensemble_url, body)

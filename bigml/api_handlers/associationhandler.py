@@ -100,3 +100,15 @@ class AssociationHandlerMixin(ResourceHandlerMixin):
         association_id = get_association_id(association)
         if association_id:
             return self._delete("%s%s" % (self.url, association_id))
+
+    def clone_association(self, association,
+                          args=None, wait_time=3, retries=10):
+        """Creates a cloned association from an existing `association`
+
+        """
+        create_args = self._set_clone_from_args(
+            association, "association", args=args, wait_time=wait_time,
+            retries=retries)
+
+        body = json.dumps(create_args)
+        return self._create(self.association_url, body)
